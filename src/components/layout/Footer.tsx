@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Waves, MapPin, Phone, Mail, ArrowRight } from "lucide-react";
 import { siteConfig } from "@/lib/siteConfig";
+import { cn } from "@/lib/utils";
 
 export function Footer() {
+  const pathname = usePathname();
   return (
     <footer className="bg-navy-950 text-navy-300">
       <div className="max-w-7xl mx-auto px-4">
@@ -58,18 +63,30 @@ export function Footer() {
               {[
                 ["Hakkımızda", "/hakkimizda"],
                 ["Müşteri Hizmetleri", "/iletisim"],
-                ["Kargo & Teslimat", "#"],
-                ["İade & Değişim", "#"],
-                ["Gizlilik Politikası", "#"],
-                ["SSS", "#"],
-              ].map(([label, href]) => (
-                <li key={label}>
-                  <Link href={href} className="flex items-center gap-2 text-navy-400 hover:text-turquoise-400 transition-colors group">
-                    <ArrowRight className="w-3 h-3 opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0 transition-all" />
-                    {label}
-                  </Link>
-                </li>
-              ))}
+                ["Kargo & Teslimat", "/kargo-teslimat"],
+                ["İade & Değişim", "/iade-degisim"],
+                ["Gizlilik Politikası", "/gizlilik-politikasi"],
+                ["SSS", "/sss"],
+              ].map(([label, href]) => {
+                const isActive = pathname === href;
+                return (
+                  <li key={label}>
+                    <Link 
+                      href={href} 
+                      className={cn(
+                        "flex items-center gap-2 transition-colors group",
+                        isActive ? "text-turquoise-400 font-semibold" : "text-navy-400 hover:text-turquoise-400"
+                      )}
+                    >
+                      <ArrowRight className={cn(
+                        "w-3 h-3 transition-all",
+                        isActive ? "opacity-100 ml-0 text-turquoise-400" : "opacity-0 -ml-1 group-hover:opacity-100 group-hover:ml-0"
+                      )} />
+                      {label}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
@@ -104,10 +121,9 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-6 text-xs text-navy-500">
           <p>© {new Date().getFullYear()} {siteConfig.name}. Tüm hakları saklıdır.</p>
-          <div className="flex items-center gap-4">
-            <Link href="#" className="hover:text-navy-300 transition-colors">Kullanım Koşulları</Link>
-            <Link href="#" className="hover:text-navy-300 transition-colors">Çerez Politikası</Link>
-            <Link href="#" className="hover:text-navy-300 transition-colors">KVKK</Link>
+          <div className="flex items-center gap-1 text-navy-400">
+            <span>Powered by</span>
+            <span className="font-bold text-navy-300 tracking-widest">ARPETA</span>
           </div>
         </div>
       </div>

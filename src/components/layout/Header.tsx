@@ -7,8 +7,10 @@ import { Search, ShoppingCart, Heart, Menu, X, Waves, ChevronDown, Phone } from 
 import { useCartStore } from "@/lib/store/useCart";
 import { useFavoritesStore } from "@/lib/store/useFavorites";
 import { useRouter, usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { siteConfig } from "@/lib/siteConfig";
+import { searchProducts } from "@/actions/search";
+import { Product } from "@/services/types";
 
 const categories = [
   { slug: "havuz-robotlari", name: "Havuz Robotları", subs: ["Zemin Robotlar", "Duvar & Zemin", "Akıllı Sistemler"] },
@@ -23,12 +25,20 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  
   const [mounted, setMounted] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
   const cartItems = useCartStore((s) => s.items);
   const favItems = useFavoritesStore((s) => s.items);
   const dropdownTimer = useRef<NodeJS.Timeout | null>(null);
+  const desktopSearchRef = useRef<HTMLFormElement>(null);
+  const mobileSearchRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -40,11 +50,76 @@ export function Header() {
   const totalItems = mounted ? cartItems.reduce((a, b) => a + b.quantity, 0) : 0;
   const favCount = mounted ? favItems.length : 0;
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        (desktopSearchRef.current && desktopSearchRef.current.contains(target)) ||
+        (mobileSearchRef.current && mobileSearchRef.current.contains(target))
+      ) {
+        return;
+      }
+      setShowDropdown(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    setShowDropdown(false);
+    setSearchQuery("");
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setShowDropdown(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      const results = await searchProducts(searchQuery);
+      setSearchResults(results);
+      setShowDropdown(true);
+      setSelectedIndex(-1);
+      setIsSearching(false);
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showDropdown) return;
+    
+    const totalItemsCount = searchResults.length > 6 ? 7 : searchResults.length;
+    
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev < totalItemsCount - 1 ? prev + 1 : prev));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev > 0 ? prev - 1 : -1));
+    } else if (e.key === "Escape") {
+      setShowDropdown(false);
+    } else if (e.key === "Enter" && selectedIndex >= 0) {
+      e.preventDefault();
+      if (searchResults.length > 6 && selectedIndex === 6) {
+        router.push(`/arama?q=${encodeURIComponent(searchQuery)}`);
+      } else {
+        const product = searchResults[selectedIndex];
+        if (product) router.push(`/urun/${product.slug}`);
+      }
+      setShowDropdown(false);
+      setSearchQuery("");
+    }
+  };
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/kategori/havuz-robotlari?q=${encodeURIComponent(searchQuery)}`);
-      setSearchQuery("");
+      router.push(`/arama?q=${encodeURIComponent(searchQuery)}`);
+      setShowDropdown(false);
     }
   };
 
@@ -113,12 +188,18 @@ export function Header() {
             </Link>
 
             {/* Search */}
-            <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl relative">
+            <form 
+              ref={desktopSearchRef}
+              onSubmit={handleSearch} 
+              className="hidden md:flex flex-1 max-w-2xl relative"
+            >
               <input
                 type="search"
                 placeholder="Ürün, marka veya kategori ara..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => searchQuery.trim() && setShowDropdown(true)}
                 className="w-full h-11 pl-5 pr-14 rounded-2xl border-2 border-navy-100 bg-navy-50 text-sm text-navy-900 placeholder:text-navy-400 focus:outline-none focus:border-turquoise-400 focus:bg-white transition-all"
               />
               <button
@@ -127,6 +208,63 @@ export function Header() {
               >
                 <Search className="w-4 h-4" />
               </button>
+
+              {/* Dropdown */}
+              {showDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl shadow-navy-900/10 border border-navy-100 overflow-hidden z-50">
+                  {isSearching ? (
+                    <div className="p-4 text-center text-sm text-navy-500">Aranıyor...</div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="flex flex-col">
+                      {searchResults.slice(0, 6).map((product, i) => (
+                        <Link
+                          key={product.id}
+                          href={`/urun/${product.slug}`}
+                          className={cn(
+                            "flex items-center gap-3 p-3 hover:bg-navy-50 transition-colors border-b border-navy-50 last:border-0",
+                            selectedIndex === i && "bg-navy-50"
+                          )}
+                        >
+                          <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-white border border-navy-100 shrink-0">
+                            <Image src={product.images[0]} alt={product.title} fill className="object-contain p-1" sizes="48px" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-navy-900 truncate">{product.title}</p>
+                            <p className="text-xs text-navy-500 truncate">{product.brand} • {product.category}</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="text-sm font-bold text-turquoise-600">{formatCurrency(product.price)}</p>
+                            {product.stock > 0 ? (
+                              <p className="text-[10px] text-green-500 font-medium">Stokta var</p>
+                            ) : (
+                              <p className="text-[10px] text-red-500 font-medium">Stokta yok</p>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                      {searchResults.length > 6 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            router.push(`/arama?q=${encodeURIComponent(searchQuery)}`);
+                            setShowDropdown(false);
+                          }}
+                          className={cn(
+                            "p-3 text-center text-sm font-semibold text-turquoise-600 hover:bg-navy-50 transition-colors border-t border-navy-100",
+                            selectedIndex === 6 && "bg-navy-50"
+                          )}
+                        >
+                          Tüm sonuçları gör ({searchResults.length})
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-sm text-navy-500">
+                      Aramanızla eşleşen ürün bulunamadı.
+                    </div>
+                  )}
+                </div>
+              )}
             </form>
 
             {/* Actions */}
@@ -161,17 +299,68 @@ export function Header() {
 
           {/* Mobile Search */}
           <div className="md:hidden pb-3">
-            <form onSubmit={handleSearch} className="relative">
+            <form ref={mobileSearchRef} onSubmit={handleSearch} className="relative">
               <input
                 type="search"
                 placeholder="Ara..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => searchQuery.trim() && setShowDropdown(true)}
                 className="w-full h-10 pl-4 pr-12 rounded-xl border border-navy-200 bg-navy-50 text-sm focus:outline-none focus:border-turquoise-400"
               />
               <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 bg-turquoise-500 text-white rounded-lg flex items-center justify-center">
                 <Search className="w-3.5 h-3.5" />
               </button>
+
+              {/* Mobile Dropdown */}
+              {showDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl shadow-navy-900/10 border border-navy-100 overflow-hidden z-50">
+                  {isSearching ? (
+                    <div className="p-4 text-center text-sm text-navy-500">Aranıyor...</div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="flex flex-col">
+                      {searchResults.slice(0, 6).map((product, i) => (
+                        <Link
+                          key={product.id}
+                          href={`/urun/${product.slug}`}
+                          className={cn(
+                            "flex items-center gap-3 p-3 hover:bg-navy-50 transition-colors border-b border-navy-50 last:border-0",
+                            selectedIndex === i && "bg-navy-50"
+                          )}
+                        >
+                          <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-white border border-navy-100 shrink-0">
+                            <Image src={product.images[0]} alt={product.title} fill className="object-contain p-1" sizes="40px" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-semibold text-navy-900 truncate">{product.title}</p>
+                            <p className="text-[10px] text-navy-500 truncate">{product.brand}</p>
+                          </div>
+                        </Link>
+                      ))}
+                      {searchResults.length > 6 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            router.push(`/arama?q=${encodeURIComponent(searchQuery)}`);
+                            setShowDropdown(false);
+                          }}
+                          className={cn(
+                            "p-3 text-center text-sm font-semibold text-turquoise-600 hover:bg-navy-50 transition-colors border-t border-navy-100",
+                            selectedIndex === 6 && "bg-navy-50"
+                          )}
+                        >
+                          Tüm sonuçları gör ({searchResults.length})
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-sm text-navy-500">
+                      Sonuç bulunamadı.
+                    </div>
+                  )}
+                </div>
+              )}
             </form>
           </div>
 

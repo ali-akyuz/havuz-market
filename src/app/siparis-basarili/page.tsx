@@ -1,12 +1,30 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { CheckCircle2, Package, ArrowRight, Home } from "lucide-react";
 
-function getOrderNumber() {
-  return `ARP-${Math.floor(Math.random() * 900000) + 100000}`;
-}
-
 export default function OrderSuccessPage() {
-  const orderNumber = getOrderNumber();
+  const [orderNumber, setOrderNumber] = useState<string>("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    let storedId = sessionStorage.getItem("lastOrderId");
+    if (!storedId) {
+      // Fallback if accessed directly
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let code = "";
+      for (let i = 0; i < 8; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      storedId = `HM-${code}`;
+      sessionStorage.setItem("lastOrderId", storedId);
+    }
+    setOrderNumber(storedId);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-slate-50 py-20">
@@ -21,7 +39,7 @@ export default function OrderSuccessPage() {
           </div>
         </div>
 
-        <h1 className="text-3xl font-black text-navy-900 mb-3">Siparişiniz Alındı!</h1>
+        <h1 className="text-3xl font-black text-navy-900 mb-3">Siparişiniz Alındı</h1>
         <p className="text-navy-500 text-lg mb-8 leading-relaxed">
           Teşekkürler! Siparişiniz başarıyla oluşturuldu ve en kısa sürede kargoya verilecektir.
         </p>
@@ -33,7 +51,7 @@ export default function OrderSuccessPage() {
               <Package className="w-5 h-5 text-navy-600" />
             </div>
             <div>
-              <p className="text-xs text-navy-500 font-medium">Sipariş Numarası</p>
+              <p className="text-xs text-navy-500 font-medium">Sipariş Kodu</p>
               <p className="font-black text-navy-900 text-lg">{orderNumber}</p>
             </div>
           </div>

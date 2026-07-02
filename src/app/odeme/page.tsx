@@ -18,6 +18,48 @@ interface FormData {
 
 type FieldErrors = Partial<Record<keyof FormData, string>>;
 
+interface FieldProps {
+  label: string;
+  field: keyof FormData;
+  type?: string;
+  inputMode?: "text" | "numeric" | "tel" | "email";
+  placeholder?: string;
+  className?: string;
+  onChange?: (val: string) => void;
+  update?: (field: keyof FormData, val: string) => void;
+  value: string;
+  error?: string;
+  onFocus?: () => void;
+  onBlur?: () => void;
+}
+
+const Field = ({
+  label, field, type = "text", inputMode, placeholder, className = "",
+  onChange, update, value, error, onFocus, onBlur
+}: FieldProps) => (
+  <div className={className}>
+    <label htmlFor={field} className="block text-sm font-semibold text-navy-700 mb-1.5">{label}</label>
+    <input
+      id={field}
+      type={type}
+      inputMode={inputMode}
+      value={value}
+      onChange={(e) => {
+        if (onChange) onChange(e.target.value);
+        else if (update) update(field, e.target.value);
+      }}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      placeholder={placeholder}
+      className={cn(
+        "w-full h-12 px-4 rounded-xl border-2 text-sm bg-white text-navy-900 transition-colors focus:outline-none placeholder:text-navy-300",
+        error ? "border-red-300 focus:border-red-400" : "border-navy-100 focus:border-turquoise-400"
+      )}
+    />
+    {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+  </div>
+);
+
 export default function CheckoutPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
@@ -31,6 +73,7 @@ export default function CheckoutPage() {
     saveCard: false,
   });
   const [errors, setErrors] = useState<FieldErrors>({});
+  const [isCardFlipped, setIsCardFlipped] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -51,6 +94,22 @@ export default function CheckoutPage() {
     if (errors[field]) setErrors(e => { const n = { ...e }; delete n[field]; return n; });
   };
 
+  const formatName = (val: string) => val.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ\s]/g, "");
+
+  const formatPhone = (val: string) => {
+    let numbers = val.replace(/\D/g, "");
+    if (numbers.length > 0 && !numbers.startsWith("0")) numbers = "0" + numbers;
+    numbers = numbers.slice(0, 11);
+    let formatted = "";
+    for (let i = 0; i < numbers.length; i++) {
+      if (i === 4 || i === 7 || i === 9) formatted += " ";
+      formatted += numbers[i];
+    }
+    return formatted;
+  };
+
+  const formatZipCode = (val: string) => val.replace(/\D/g, "").slice(0, 5);
+
   const formatCard = (val: string) =>
     val.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ").trim();
 
@@ -62,9 +121,11 @@ export default function CheckoutPage() {
     if (!form.firstName.trim()) e.firstName = "Ad gerekli";
     if (!form.lastName.trim()) e.lastName = "Soyad gerekli";
     if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(form.email)) e.email = "Geçerli e-posta girin";
-    if (form.phone.replace(/\D/g, "").length < 10) e.phone = "Geçerli telefon girin";
+    if (form.phone.replace(/\D/g, "").length < 11) e.phone = "11 haneli telefon girin";
     if (!form.address.trim()) e.address = "Adres gerekli";
     if (!form.city.trim()) e.city = "Şehir gerekli";
+    if (!form.district.trim()) e.district = "İlçe gerekli";
+    if (form.zipCode.length < 5) e.zipCode = "Geçerli posta kodu girin";
     if (!form.cardName.trim()) e.cardName = "Kart sahibi adı gerekli";
     if (form.cardNumber.replace(/\s/g, "").length < 16) e.cardNumber = "Geçerli kart numarası girin";
     if (!/^[0-9]{2}\/[0-9]{2}$/.test(form.expiry)) e.expiry = "AA/YY formatında girin";
@@ -77,34 +138,26 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
+    
+    // Generate order ID
+    const generateOrderCode = () => {
+      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let code = "";
+      for (let i = 0; i < 8; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return `HM-${code}`;
+    };
+    
+    const orderId = generateOrderCode();
+    sessionStorage.setItem("lastOrderId", orderId);
+
     setTimeout(() => {
       clearCart();
       router.push("/siparis-basarili");
     }, 1200);
   };
 
-  const Field = ({
-    label, field, type = "text", placeholder, className = "",
-    onChange, value,
-  }: {
-    label: string; field: keyof FormData; type?: string; placeholder?: string;
-    className?: string; onChange?: (val: string) => void; value: string;
-  }) => (
-    <div className={className}>
-      <label className="block text-sm font-semibold text-navy-700 mb-1.5">{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange ? onChange(e.target.value) : update(field, e.target.value)}
-        placeholder={placeholder}
-        className={cn(
-          "w-full h-12 px-4 rounded-xl border-2 text-sm bg-white text-navy-900 transition-colors focus:outline-none placeholder:text-navy-300",
-          errors[field] ? "border-red-300 focus:border-red-400" : "border-navy-100 focus:border-turquoise-400"
-        )}
-      />
-      {errors[field] && <p className="text-red-500 text-xs mt-1">{errors[field]}</p>}
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-slate-50 py-10">
@@ -148,14 +201,14 @@ export default function CheckoutPage() {
                   Teslimat Adresi
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Ad" field="firstName" value={form.firstName} placeholder="Ahmet" />
-                  <Field label="Soyad" field="lastName" value={form.lastName} placeholder="Yılmaz" />
-                  <Field label="E-posta" field="email" type="email" value={form.email} placeholder="ahmet@email.com" className="sm:col-span-2" />
-                  <Field label="Telefon" field="phone" type="tel" value={form.phone} placeholder="0532 123 45 67" />
-                  <Field label="Şehir" field="city" value={form.city} placeholder="İstanbul" />
-                  <Field label="İlçe" field="district" value={form.district} placeholder="Kadıköy" />
-                  <Field label="Posta Kodu" field="zipCode" value={form.zipCode} placeholder="34700" />
-                  <Field label="Açık Adres" field="address" value={form.address} placeholder="Mahalle, sokak, no..." className="sm:col-span-2" />
+                  <Field label="Ad" field="firstName" value={form.firstName} onChange={(v) => update("firstName", formatName(v))} error={errors.firstName} placeholder="Ahmet" />
+                  <Field label="Soyad" field="lastName" value={form.lastName} onChange={(v) => update("lastName", formatName(v))} error={errors.lastName} placeholder="Yılmaz" />
+                  <Field label="E-posta" field="email" type="email" inputMode="email" value={form.email} update={update} error={errors.email} placeholder="ahmet@email.com" className="sm:col-span-2" />
+                  <Field label="Telefon" field="phone" type="tel" inputMode="numeric" value={form.phone} onChange={(v) => update("phone", formatPhone(v))} error={errors.phone} placeholder="0534 792 65 83" />
+                  <Field label="Şehir" field="city" value={form.city} onChange={(v) => update("city", formatName(v))} error={errors.city} placeholder="İstanbul" />
+                  <Field label="İlçe" field="district" value={form.district} onChange={(v) => update("district", formatName(v))} error={errors.district} placeholder="Kadıköy" />
+                  <Field label="Posta Kodu" field="zipCode" type="text" inputMode="numeric" value={form.zipCode} onChange={(v) => update("zipCode", formatZipCode(v))} error={errors.zipCode} placeholder="34700" />
+                  <Field label="Açık Adres" field="address" value={form.address} update={update} error={errors.address} placeholder="Mahalle, sokak, no..." className="sm:col-span-2" />
                 </div>
               </div>
 
@@ -172,52 +225,69 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Card visual */}
-                <div className="relative w-full max-w-xs mx-auto mb-8 h-44 bg-gradient-to-br from-navy-800 to-navy-950 rounded-2xl p-6 overflow-hidden shadow-xl">
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-turquoise-500/20 rounded-full blur-2xl" />
-                  <div className="text-navy-400 text-xs mb-8 font-mono uppercase tracking-widest">Kredi / Banka Kartı</div>
-                  <div className="text-white font-mono text-lg tracking-[4px] mb-4">
-                    {form.cardNumber || "•••• •••• •••• ••••"}
-                  </div>
-                  <div className="flex justify-between">
-                    <div>
-                      <div className="text-navy-400 text-[9px] uppercase tracking-widest mb-0.5">Kart Sahibi</div>
-                      <div className="text-white text-sm font-semibold">{form.cardName || "AD SOYAD"}</div>
+                {/* Card visual 3D */}
+                <div className="relative w-full max-w-xs mx-auto mb-8 h-48 perspective-1000" style={{ perspective: "1000px" }}>
+                  <div 
+                    className="w-full h-full relative transition-transform duration-700 shadow-xl rounded-2xl" 
+                    style={{ transformStyle: "preserve-3d", transform: isCardFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
+                  >
+                    {/* Front Side */}
+                    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-navy-800 to-navy-950 rounded-2xl p-6 overflow-hidden" style={{ backfaceVisibility: "hidden" }}>
+                      <div className="absolute top-0 right-0 w-40 h-40 bg-turquoise-500/20 rounded-full blur-2xl" />
+                      <div className="text-navy-400 text-xs mb-8 font-mono uppercase tracking-widest">Kredi / Banka Kartı</div>
+                      <div className="text-white font-mono text-lg tracking-[4px] mb-4">
+                        {form.cardNumber || "•••• •••• •••• ••••"}
+                      </div>
+                      <div className="flex justify-between">
+                        <div>
+                          <div className="text-navy-400 text-[9px] uppercase tracking-widest mb-0.5">Kart Sahibi</div>
+                          <div className="text-white text-sm font-semibold">{form.cardName || "AD SOYAD"}</div>
+                        </div>
+                        <div>
+                          <div className="text-navy-400 text-[9px] uppercase tracking-widest mb-0.5">Son Kullanma</div>
+                          <div className="text-white text-sm font-semibold">{form.expiry || "AA/YY"}</div>
+                        </div>
+                        <CreditCard className="w-8 h-8 text-turquoise-400 self-end" />
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-navy-400 text-[9px] uppercase tracking-widest mb-0.5">Son Kullanma</div>
-                      <div className="text-white text-sm font-semibold">{form.expiry || "AA/YY"}</div>
+                    
+                    {/* Back Side */}
+                    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-navy-800 to-navy-950 rounded-2xl overflow-hidden" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
+                      <div className="w-full h-10 bg-black/80 mt-6" />
+                      <div className="px-6 mt-4">
+                        <div className="w-full h-8 bg-white/10 rounded flex items-center justify-end px-3">
+                          <span className="text-white font-mono tracking-widest">{form.cvv || "•••"}</span>
+                        </div>
+                        <div className="text-[9px] text-navy-400 mt-2 text-right uppercase tracking-widest">CVV / Güvenlik Kodu</div>
+                      </div>
                     </div>
-                    <CreditCard className="w-8 h-8 text-turquoise-400 self-end" />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Field
-                    label="Kart Üzerindeki İsim" field="cardName" value={form.cardName}
+                    label="Kart Üzerindeki İsim" field="cardName" value={form.cardName} error={errors.cardName}
                     placeholder="AHMET YILMAZ" className="sm:col-span-2"
                     onChange={(v) => update("cardName", v.toUpperCase())}
                   />
                   <Field
-                    label="Kart Numarası" field="cardNumber" value={form.cardNumber}
+                    label="Kart Numarası" field="cardNumber" value={form.cardNumber} error={errors.cardNumber}
                     placeholder="0000 0000 0000 0000" className="sm:col-span-2"
                     onChange={(v) => update("cardNumber", formatCard(v))}
                   />
                   <Field
-                    label="Son Kullanma Tarihi" field="expiry" value={form.expiry}
+                    label="Son Kullanma Tarihi" field="expiry" value={form.expiry} error={errors.expiry}
                     placeholder="AA/YY"
                     onChange={(v) => update("expiry", formatExpiry(v))}
                   />
                   <Field
-                    label="CVV" field="cvv" type="password" value={form.cvv}
+                    label="CVV" field="cvv" type="text" value={form.cvv} error={errors.cvv}
                     placeholder="•••"
                     onChange={(v) => update("cvv", v.replace(/\D/g, "").slice(0, 4))}
+                    onFocus={() => setIsCardFlipped(true)}
+                    onBlur={() => setIsCardFlipped(false)}
                   />
                 </div>
-
-                <p className="text-xs text-navy-400 mt-4">
-                  Bu bir simülasyondur. Gerçek ödeme alınmaz. Kart bilgileriniz kaydedilmez.
-                </p>
               </div>
             </div>
 
@@ -274,7 +344,7 @@ export default function CheckoutPage() {
 
                 <p className="text-xs text-navy-400 text-center mt-3">
                   "Siparişi Tamamla" butonuna basarak{" "}
-                  <Link href="#" className="underline">Satış Sözleşmesi</Link>'ni kabul edersiniz.
+                  <Link href="/satis-sozlesmesi" target="_blank" rel="noopener noreferrer" className="underline hover:text-turquoise-500 transition-colors">Satış Sözleşmesi</Link>'ni kabul edersiniz.
                 </p>
               </div>
             </div>

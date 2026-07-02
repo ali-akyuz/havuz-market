@@ -67,6 +67,7 @@ export function Footer() {
                 ["İade & Değişim", "/iade-degisim"],
                 ["Gizlilik Politikası", "/gizlilik-politikasi"],
                 ["SSS", "/sss"],
+                ["Mesafeli Satış Sözleşmesi", "/satis-sozlesmesi"],
               ].map(([label, href]) => {
                 const isActive = pathname === href;
                 return (

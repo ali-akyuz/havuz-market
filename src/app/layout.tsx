@@ -5,6 +5,8 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { siteConfig } from "@/lib/siteConfig";
 
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
@@ -28,6 +30,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr" className={inter.variable}>
       <body className="min-h-screen flex flex-col bg-slate-50 antialiased">
+        <ScrollToTop />
         <Header />
         <main className="flex-grow">{children}</main>
         <Footer />

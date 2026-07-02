@@ -271,7 +271,7 @@ export default function CheckoutPage() {
                   <Field
                     label="Kart Üzerindeki İsim" field="cardName" value={form.cardName} error={errors.cardName}
                     placeholder="AHMET YILMAZ" className="sm:col-span-2"
-                    onChange={(v) => update("cardName", v.toUpperCase())}
+                    onChange={(v) => update("cardName", formatName(v).toUpperCase())}
                   />
                   <Field
                     label="Kart Numarası" field="cardNumber" value={form.cardNumber} error={errors.cardNumber}

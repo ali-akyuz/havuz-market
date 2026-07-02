@@ -19,7 +19,7 @@ import { siteConfig } from "@/lib/siteConfig";
 export const metadata: Metadata = {
   title: "Hakkımızda",
   description:
-    "Arpeta, 2010'dan bu yana Türkiye'nin önde gelen havuz ekipmanları platformudur. Dolphin, Hayward, Zodiac ve daha fazla markanın yetkili distribütörüyüz.",
+    `${siteConfig.name}, 2010'dan bu yana Türkiye'nin önde gelen havuz ekipmanları platformudur. Dolphin, Hayward, Zodiac ve daha fazla markanın yetkili distribütörüyüz.`,
 };
 
 const whyUs = [
@@ -57,11 +57,11 @@ const stats = [
 ];
 
 const timeline = [
-  { year: "2010", title: "Kuruluş", desc: "Ankara Ostim'de küçük bir ekip ve büyük bir vizyonla yolculuğumuza başladık." },
+  { year: "2010", title: "Kuruluş", desc: "İskenderun'da küçük bir ekip ve büyük bir vizyonla yolculuğumuza başladık." },
   { year: "2014", title: "Bayi Ağı", desc: "Dolphin ve Hayward markalarının Türkiye distribütörlüğünü üstlenerek bayi ağımızı genişlettik." },
   { year: "2018", title: "E-Ticaret", desc: "Online platformumuzu açarak müşterilerimize 7/24 alışveriş imkânı sunduk." },
   { year: "2022", title: "Premium Deneyim", desc: "Müşteri memnuniyetinde %96 oranına ulaştık ve 2.500+ mutlu müşteriye hizmet ettik." },
-  { year: "2024", title: "Yeni Nesil Platform", desc: "Tamamen yenilenen Arpeta platformuyla daha hızlı, daha akıllı ve daha kolay alışveriş deneyimi." },
+  { year: "2024", title: "Yeni Nesil Platform", desc: `Tamamen yenilenen ${siteConfig.name} platformuyla daha hızlı, daha akıllı ve daha kolay alışveriş deneyimi.` },
 ];
 
 export default function AboutPage() {
@@ -104,7 +104,7 @@ export default function AboutPage() {
               Sunuyoruz.
             </h1>
             <p className="text-lg text-navy-300 leading-relaxed max-w-2xl">
-              Arpeta, {siteConfig.founding} yılında Ankara'da kurulmuş, havuz ekipmanları, kimyasallar ve bakım ürünleri
+              {siteConfig.name}, {siteConfig.founding} yılında İskenderun'da kurulmuş, havuz ekipmanları, kimyasallar ve bakım ürünleri
               alanında Türkiye'nin güvenilir platformlarından biridir. Dolphin, Hayward, Zodiac, AstralPool ve BWT gibi
               dünya markalarının yetkili distribütörüyüz.
             </p>
@@ -140,7 +140,7 @@ export default function AboutPage() {
               </h2>
               <div className="space-y-4 text-navy-600 leading-relaxed">
                 <p>
-                  Arpeta, {siteConfig.founding} yılında Ankara Ostim'de kurulmuş; havuz robotları, kimyasallar, pompalar,
+                  {siteConfig.name}, {siteConfig.founding} yılında İskenderun'da kurulmuş; havuz robotları, kimyasallar, pompalar,
                   aydınlatmalar ve tuz klor jeneratörleri alanında uzmanlaşmış bir e-ticaret platformudur.
                 </p>
                 <p>
@@ -170,7 +170,7 @@ export default function AboutPage() {
             {/* Visual panel */}
             <div className="relative">
               <div className="relative h-[420px] rounded-3xl overflow-hidden">
-                <Image src="/images/banners/campaign.jpg" alt="Arpeta Showroom" fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
+                <Image src="/images/banners/campaign.jpg" alt={`${siteConfig.name} Showroom`} fill className="object-cover" sizes="(max-width: 1024px) 100vw, 50vw" />
                 <div className="absolute inset-0 bg-gradient-to-t from-navy-900/60 to-transparent" />
                 <div className="absolute bottom-6 left-6 right-6">
                   <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4">
@@ -191,12 +191,12 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* ── NEDEN ARPETA ── */}
+      {/* ── NEDEN BİZ ── */}
       <section className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-14">
             <p className="text-turquoise-600 font-semibold text-sm uppercase tracking-widest mb-3">Avantajlarımız</p>
-            <h2 className="text-3xl lg:text-4xl font-black text-navy-900">Neden Arpeta'yı Seçmelisiniz?</h2>
+            <h2 className="text-3xl lg:text-4xl font-black text-navy-900">Neden Bizi Seçmelisiniz?</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {whyUs.map(({ icon, title, desc, color }) => (

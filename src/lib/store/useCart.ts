@@ -60,7 +60,7 @@ export const useCartStore = create<CartStore>()(
       },
     }),
     {
-      name: 'arpeta-cart-storage',
+      name: 'havuzmarket-cart-storage',
     }
   )
 );

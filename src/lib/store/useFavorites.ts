@@ -27,7 +27,7 @@ export const useFavoritesStore = create<FavoritesStore>()(
       },
     }),
     {
-      name: 'arpeta-favorites-storage',
+      name: 'havuzmarket-favorites-storage',
     }
   )
 );

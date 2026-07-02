@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Shield, Truck, Star } from "lucide-react";
+import { siteConfig } from "@/lib/siteConfig";
 
 export function Hero() {
   return (
@@ -43,7 +44,7 @@ export function Hero() {
 
           <p className="text-lg text-navy-300 mb-10 leading-relaxed max-w-lg">
             Robotlardan kimyasallara, pompalardan aydınlatmaya — havuzunuzun ihtiyacı olan 
-            her şey Arpeta'da. Uzman destek, 2 yıl garanti, ücretsiz kargo.
+            her şey {siteConfig.name}'te. Uzman destek, 2 yıl garanti, ücretsiz kargo.
           </p>
 
           {/* CTAs */}

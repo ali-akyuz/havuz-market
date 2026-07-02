@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { siteConfig } from "@/lib/siteConfig";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -12,13 +13,13 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: "Arpeta | Premium Havuz Ekipmanları",
-    template: "%s | Arpeta",
+    default: `${siteConfig.name} | ${siteConfig.tagline}`,
+    template: `%s | ${siteConfig.name}`,
   },
   description: "Türkiye'nin en kapsamlı havuz ekipmanları platformu. Havuz robotları, kimyasallar, pompalar ve daha fazlası. Ücretsiz kargo, 2 yıl garanti.",
   keywords: ["havuz robotu", "havuz kimyasalı", "havuz pompası", "tuz klor jeneratörü", "havuz ekipmanları"],
   openGraph: {
-    siteName: "Arpeta",
+    siteName: siteConfig.name,
     locale: "tr_TR",
   },
 };

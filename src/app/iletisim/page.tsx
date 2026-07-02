@@ -105,8 +105,8 @@ export default function ContactPage() {
     {
       icon: <Clock className="w-6 h-6" />,
       title: "Çalışma Saatleri",
-      primary: "Pzt – Cuma: 09:00 – 18:00",
-      secondary: "Cmt: 09:00 – 14:00 | Pazar: Kapalı",
+      primary: siteConfig.workingHours.weekdays,
+      secondary: siteConfig.workingHours.saturday,
       href: null,
       color: "bg-amber-50 text-amber-600",
     },

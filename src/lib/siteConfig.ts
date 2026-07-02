@@ -3,21 +3,21 @@
  * Telefon, e-posta, adres ve çalışma saatlerini buradan güncelleyin.
  */
 export const siteConfig = {
-  name: "Arpeta",
+  name: "Havuz Market",
   tagline: "Premium Havuz Ekipmanları",
-  phone: "0850 123 45 67",
-  phoneHref: "tel:08501234567",
-  email: "destek@arpeta.com.tr",
-  emailHref: "mailto:destek@arpeta.com.tr",
+  phone: "0534 792 65 83",
+  phoneHref: "tel:+905347926583",
+  email: "destek@havuzmarket.com",
+  emailHref: "mailto:destek@havuzmarket.com",
   address: {
-    line1: "Ostim OSB, 100. Yıl Bulvarı No:123",
-    line2: "Yenimahalle / Ankara",
-    full: "Ostim OSB, 100. Yıl Bulvarı No:123, Yenimahalle / Ankara",
+    line1: "Modern Çarşı, Savaş Mahallesi, Mareşal Fevzi Çakmak Caddesi",
+    line2: "31200 İskenderun / Hatay, Türkiye",
+    full: "Modern Çarşı, Savaş Mahallesi, Mareşal Fevzi Çakmak Caddesi, 31200 İskenderun / Hatay, Türkiye",
     mapsUrl: "https://maps.google.com",
   },
   workingHours: {
-    weekdays: "Pazartesi – Cuma: 09:00 – 18:00",
-    saturday: "Cumartesi: 09:00 – 14:00",
+    weekdays: "Pazartesi – Cuma: 09:00 – 19:00",
+    saturday: "Cumartesi: Kapalı",
     sunday: "Pazar: Kapalı",
   },
   social: {

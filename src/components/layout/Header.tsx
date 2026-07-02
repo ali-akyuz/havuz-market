@@ -6,8 +6,9 @@ import { useState, useEffect, useRef } from "react";
 import { Search, ShoppingCart, Heart, Menu, X, Waves, ChevronDown, Phone } from "lucide-react";
 import { useCartStore } from "@/lib/store/useCart";
 import { useFavoritesStore } from "@/lib/store/useFavorites";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { siteConfig } from "@/lib/siteConfig";
 
 const categories = [
   { slug: "havuz-robotlari", name: "Havuz Robotları", subs: ["Zemin Robotlar", "Duvar & Zemin", "Akıllı Sistemler"] },
@@ -68,9 +69,9 @@ export function Header() {
             </span>
           </div>
           <div className="flex items-center gap-6">
-            <a href="tel:08501234567" className="flex items-center gap-1.5 hover:text-turquoise-300 transition-colors">
+            <a href={siteConfig.phoneHref} className="flex items-center gap-1.5 hover:text-turquoise-300 transition-colors">
               <Phone className="w-3 h-3" />
-              0850 123 45 67
+              {siteConfig.phone}
             </a>
             <Link href="/hakkimizda" className="hover:text-turquoise-300 transition-colors">Hakkımızda</Link>
             <Link href="/iletisim" className="hover:text-turquoise-300 transition-colors">İletişim</Link>
@@ -106,7 +107,7 @@ export function Header() {
                 </div>
               </div>
               <div className="flex flex-col leading-none">
-                <span className="text-xl font-black text-navy-900 tracking-tight">arpeta</span>
+                <span className="text-xl font-black text-navy-900 tracking-tight">{siteConfig.name}</span>
                 <span className="text-[10px] text-navy-400 font-medium tracking-widest uppercase">Havuz Ekipmanları</span>
               </div>
             </Link>

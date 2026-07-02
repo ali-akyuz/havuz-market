@@ -13,7 +13,7 @@ export const siteConfig = {
     line1: "Modern Çarşı, Savaş Mahallesi, Mareşal Fevzi Çakmak Caddesi",
     line2: "31200 İskenderun / Hatay, Türkiye",
     full: "Modern Çarşı, Savaş Mahallesi, Mareşal Fevzi Çakmak Caddesi, 31200 İskenderun / Hatay, Türkiye",
-    mapsUrl: "https://maps.google.com",
+    mapsUrl: "https://www.google.com/maps/search/?api=1&query=Modern+Çarşı,+Savaş+Mahallesi,+Mareşal+Fevzi+Çakmak+Caddesi,+31200+İskenderun+/+Hatay,+Türkiye",
   },
   workingHours: {
     weekdays: "Pazartesi – Cuma: 09:00 – 19:00",

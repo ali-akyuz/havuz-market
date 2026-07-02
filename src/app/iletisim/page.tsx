@@ -43,6 +43,18 @@ export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const formatPhone = (val: string) => {
+    let numbers = val.replace(/\D/g, "");
+    if (numbers.length > 0 && !numbers.startsWith("0")) numbers = "0" + numbers;
+    numbers = numbers.slice(0, 11);
+    let formatted = "";
+    for (let i = 0; i < numbers.length; i++) {
+      if (i === 4 || i === 7 || i === 9) formatted += " ";
+      formatted += numbers[i];
+    }
+    return formatted;
+  };
+
   const update = (field: keyof FormState, value: string) => {
     setForm((f) => ({ ...f, [field]: value }));
     if (errors[field]) setErrors((e) => { const n = { ...e }; delete n[field]; return n; });
@@ -156,7 +168,14 @@ export default function ContactPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-navy-500 uppercase tracking-wider mb-1">{title}</p>
-                  <p className="font-bold text-navy-900 text-sm truncate">{primary}</p>
+                  {title === "Çalışma Saatleri" && primary.includes(":") ? (
+                    <div className="flex flex-col -mt-0.5 mb-0.5">
+                      <p className="font-bold text-navy-900 text-sm truncate">{primary.split(':')[0]}:</p>
+                      <p className="font-bold text-navy-900 text-sm truncate">{primary.split(':').slice(1).join(':').trim()}</p>
+                    </div>
+                  ) : (
+                    <p className="font-bold text-navy-900 text-sm truncate">{primary}</p>
+                  )}
                   <p className="text-xs text-navy-400 mt-0.5">{secondary}</p>
                 </div>
               </div>
@@ -192,7 +211,7 @@ export default function ContactPage() {
                   </div>
                   <h3 className="text-xl font-black text-navy-900 mb-2">Mesajınız İletildi!</h3>
                   <p className="text-navy-500 mb-6 max-w-sm">
-                    Talebinizi aldık. Ekibimiz en geç iş günü içinde <strong className="text-navy-800">{form.email || "e-posta adresinize"}</strong> dönüş yapacak.
+                    Talebinizi aldık. Ekibimiz en geç 3-5 iş günü içinde <strong className="text-navy-800">{form.email || "e-posta"}</strong> adresine dönüş yapacaktır.
                   </p>
                   <button
                     onClick={() => { setSubmitted(false); setForm({ fullName: "", email: "", phone: "", subject: "", message: "" }); }}
@@ -241,9 +260,9 @@ export default function ContactPage() {
                       </label>
                       <input
                         type="tel"
-                        placeholder="0532 123 45 67"
+                        placeholder="0534 792 65 83"
                         value={form.phone}
-                        onChange={(e) => update("phone", e.target.value)}
+                        onChange={(e) => update("phone", formatPhone(e.target.value))}
                         className={inputClass("phone")}
                       />
                       {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone}</p>}
@@ -318,7 +337,7 @@ export default function ContactPage() {
 
                   <p className="text-xs text-navy-400 text-center">
                     Formu göndererek{" "}
-                    <Link href="#" className="underline hover:text-navy-600">Gizlilik Politikamızı</Link>{" "}
+                    <Link href="/gizlilik-politikasi" className="underline hover:text-navy-600">Gizlilik Politikamızı</Link>{" "}
                     kabul etmiş olursunuz.
                   </p>
                 </form>
@@ -389,7 +408,7 @@ export default function ContactPage() {
                   </div>
                 ))}
               </div>
-              <Link href="#" className="inline-flex items-center gap-1 mt-4 text-turquoise-600 text-xs font-semibold hover:underline">
+              <Link href="/sss" className="inline-flex items-center gap-1 mt-4 text-turquoise-600 text-xs font-semibold hover:underline">
                 Tüm SSS <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>

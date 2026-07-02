@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Mail, ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
 
 export function Newsletter() {
   const [email, setEmail] = useState("");
@@ -71,7 +72,7 @@ export function Newsletter() {
 
           <p className="text-xs text-navy-400 mt-4">
             Abone olarak{" "}
-            <a href="#" className="underline hover:text-navy-600">Gizlilik Politikamızı</a>{" "}
+            <Link href="/gizlilik-politikasi" className="underline hover:text-navy-600">Gizlilik Politikamızı</Link>{" "}
             kabul etmiş olursunuz.
           </p>
         </div>

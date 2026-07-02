@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Package, ArrowRight, Home } from "lucide-react";
+import { useCartStore } from "@/lib/store/useCart";
 
 export default function OrderSuccessPage() {
   const [orderNumber, setOrderNumber] = useState<string>("");
   const [mounted, setMounted] = useState(false);
+  const { clearCart } = useCartStore();
 
   useEffect(() => {
     setMounted(true);
@@ -22,7 +24,8 @@ export default function OrderSuccessPage() {
       sessionStorage.setItem("lastOrderId", storedId);
     }
     setOrderNumber(storedId);
-  }, []);
+    clearCart();
+  }, [clearCart]);
 
   if (!mounted) return null;
 
@@ -41,7 +44,7 @@ export default function OrderSuccessPage() {
 
         <h1 className="text-3xl font-black text-navy-900 mb-3">Siparişiniz Alındı</h1>
         <p className="text-navy-500 text-lg mb-8 leading-relaxed">
-          Teşekkürler! Siparişiniz başarıyla oluşturuldu ve en kısa sürede kargoya verilecektir.
+          Siparişiniz başarıyla oluşturuldu. Siparişiniz en kısa sürede hazırlanacaktır.
         </p>
 
         {/* Order details card */}
@@ -79,13 +82,6 @@ export default function OrderSuccessPage() {
           <Link
             href="/"
             className="flex-1 inline-flex items-center justify-center gap-2 bg-turquoise-500 hover:bg-turquoise-600 text-white font-bold py-4 rounded-2xl transition-all hover:shadow-lg hover:-translate-y-0.5"
-          >
-            <Home className="w-4 h-4" />
-            Ana Sayfaya Dön
-          </Link>
-          <Link
-            href="/kategori/havuz-robotlari"
-            className="flex-1 inline-flex items-center justify-center gap-2 bg-white hover:bg-navy-50 text-navy-700 font-semibold py-4 rounded-2xl border border-navy-200 transition-all"
           >
             Alışverişe Devam Et
             <ArrowRight className="w-4 h-4" />

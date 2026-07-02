@@ -131,7 +131,11 @@ export default function CheckoutPage() {
     if (!/^[0-9]{2}\/[0-9]{2}$/.test(form.expiry)) e.expiry = "AA/YY formatında girin";
     if (form.cvv.length < 3) e.cvv = "CVV gerekli";
     setErrors(e);
-    return Object.keys(e).length === 0;
+    const isValid = Object.keys(e).length === 0;
+    if (!isValid) {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    return isValid;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -153,7 +157,6 @@ export default function CheckoutPage() {
     sessionStorage.setItem("lastOrderId", orderId);
 
     setTimeout(() => {
-      clearCart();
       router.push("/siparis-basarili");
     }, 1200);
   };

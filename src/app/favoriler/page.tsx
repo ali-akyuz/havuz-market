@@ -10,7 +10,9 @@ export default function FavoritesPage() {
   const [mounted, setMounted] = useState(false);
   const { items } = useFavoritesStore();
 
-  useEffect(() => { setMounted(true); }, []);
+  // Zustand (localStorage) verilerinin sunucu ve istemci arasında uyuşmazlık (hydration error)
+  // yaratmaması için sayfa tamamen yüklendikten sonra gösterilmesini sağlarız.
+  useEffect(() => { setTimeout(() => setMounted(true), 0); }, []);
   if (!mounted) return null;
 
   return (

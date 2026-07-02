@@ -17,6 +17,7 @@ interface CartStore {
   getTotalPrice: () => number;
 }
 
+// Sepet verisini sayfa yenilense bile korumak için Zustand'ın persist middleware'i ile localStorage kullanılır.
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({

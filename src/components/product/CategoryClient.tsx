@@ -7,7 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { Product } from "@/services/types";
 import { ProductCard } from "@/components/product/ProductCard";
 import { SlidersHorizontal, ChevronDown, X, Search } from "lucide-react";
-import { cn, formatCurrency } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 interface CategoryClientProps {
   category: {
@@ -42,7 +42,7 @@ export function CategoryClient({ category, products }: CategoryClientProps) {
   useEffect(() => {
     let result = [...products];
 
-    // Search filter
+    // Arama sonuçları Türkçe karakter uyumlu olacak şekilde filtrelenir
     const q = searchParams.get("q") || searchLocal;
     if (q) {
       result = result.filter(p =>
@@ -51,12 +51,12 @@ export function CategoryClient({ category, products }: CategoryClientProps) {
       );
     }
 
-    // Subcategory filter
+    // Alt kategori filtrelemesi
     if (activeSubcat) {
       result = result.filter(p => p.subcategory === activeSubcat);
     }
 
-    // Price filter
+    // Fiyat aralığına göre (Min-Max) filtreleme
     if (minPrice) result = result.filter(p => p.price >= Number(minPrice));
     if (maxPrice) result = result.filter(p => p.price <= Number(maxPrice));
 
@@ -68,7 +68,8 @@ export function CategoryClient({ category, products }: CategoryClientProps) {
       case "newest": result.sort((a, b) => (b.badges.includes("Yeni Ürün") ? 1 : -1)); break;
     }
 
-    setFiltered(result);
+    // Filtreleme sonuçlarını state'e aktararak UI'ın güncellenmesini sağlar
+    setTimeout(() => setFiltered(result), 0);
   }, [products, activeSubcat, minPrice, maxPrice, sortBy, searchParams, searchLocal]);
 
   const clearFilters = () => {
@@ -81,7 +82,7 @@ export function CategoryClient({ category, products }: CategoryClientProps) {
 
   const hasFilters = activeSubcat || minPrice || maxPrice || searchLocal;
 
-  const FilterSidebar = () => (
+  const renderFilterSidebar = () => (
     <div className="space-y-6">
       {/* Local Search */}
       <div>
@@ -235,7 +236,7 @@ export function CategoryClient({ category, products }: CategoryClientProps) {
           {/* Sidebar Desktop */}
           <aside className="hidden lg:block w-64 flex-shrink-0">
             <div className="bg-white rounded-2xl border border-navy-100 p-6 sticky top-24">
-              <FilterSidebar />
+              {renderFilterSidebar()}
             </div>
           </aside>
 
@@ -250,7 +251,7 @@ export function CategoryClient({ category, products }: CategoryClientProps) {
                     <X className="w-5 h-5 text-navy-500" />
                   </button>
                 </div>
-                <FilterSidebar />
+                {renderFilterSidebar()}
               </div>
             </div>
           )}

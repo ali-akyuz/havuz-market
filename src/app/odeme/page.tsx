@@ -64,7 +64,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const { items, getTotalPrice, clearCart } = useCartStore();
+  const { items, getTotalPrice } = useCartStore();
 
   const [form, setForm] = useState<FormData>({
     firstName: "", lastName: "", email: "", phone: "",
@@ -75,8 +75,9 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isCardFlipped, setIsCardFlipped] = useState(false);
 
+  // Hydration sorunlarını engellemek için bileşen yüklendiğini işaretliyoruz
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
   }, []);
 
   useEffect(() => {
@@ -94,8 +95,10 @@ export default function CheckoutPage() {
     if (errors[field]) setErrors(e => { const n = { ...e }; delete n[field]; return n; });
   };
 
+  // İsim ve şehir gibi alanlarda sadece harflere izin veriyoruz
   const formatName = (val: string) => val.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ\s]/g, "");
 
+  // Telefon numarasını "05XX XXX XX XX" formatına dönüştürüyoruz
   const formatPhone = (val: string) => {
     let numbers = val.replace(/\D/g, "");
     if (numbers.length > 0 && !numbers.startsWith("0")) numbers = "0" + numbers;
@@ -110,12 +113,15 @@ export default function CheckoutPage() {
 
   const formatZipCode = (val: string) => val.replace(/\D/g, "").slice(0, 5);
 
+  // Kredi kartı numarasını 4 hanede bir boşluk bırakacak şekilde formatlıyoruz
   const formatCard = (val: string) =>
     val.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ").trim();
 
+  // Son kullanma tarihini AA/YY formatına çeviriyoruz
   const formatExpiry = (val: string) =>
     val.replace(/\D/g, "").slice(0, 4).replace(/(\d{2})(?=\d)/, "$1/");
 
+  // Tüm form verilerinin doğruluğunu (validation) kontrol ediyoruz
   const validate = (): boolean => {
     const e: FieldErrors = {};
     if (!form.firstName.trim()) e.firstName = "Ad gerekli";
@@ -130,8 +136,11 @@ export default function CheckoutPage() {
     if (form.cardNumber.replace(/\s/g, "").length < 16) e.cardNumber = "Geçerli kart numarası girin";
     if (!/^[0-9]{2}\/[0-9]{2}$/.test(form.expiry)) e.expiry = "AA/YY formatında girin";
     if (form.cvv.length < 3) e.cvv = "CVV gerekli";
+    
     setErrors(e);
     const isValid = Object.keys(e).length === 0;
+    
+    // Hata varsa sayfanın en üstüne (hatalı alana) scroll atıyoruz
     if (!isValid) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -283,13 +292,19 @@ export default function CheckoutPage() {
                     placeholder="AA/YY"
                     onChange={(v) => update("expiry", formatExpiry(v))}
                   />
-                  <Field
-                    label="CVV" field="cvv" type="text" value={form.cvv} error={errors.cvv}
-                    placeholder="•••"
-                    onChange={(v) => update("cvv", v.replace(/\D/g, "").slice(0, 4))}
-                    onFocus={() => setIsCardFlipped(true)}
-                    onBlur={() => setIsCardFlipped(false)}
-                  />
+                  <Field 
+                      label="CVV" 
+                      field="cvv" 
+                      type="text" 
+                      inputMode="numeric" 
+                      value={form.cvv} 
+                      onChange={(v) => update("cvv", v.replace(/\D/g, "").slice(0, 4))} 
+                      error={errors.cvv} 
+                      placeholder="***"
+                      // CVV alanına odaklanıldığında (focus) kartın arka yüzü animasyonla gösterilir
+                      onFocus={() => setIsCardFlipped(true)}
+                      onBlur={() => setIsCardFlipped(false)}
+                    />
                 </div>
               </div>
             </div>

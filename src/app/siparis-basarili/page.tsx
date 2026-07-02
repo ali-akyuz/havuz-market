@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CheckCircle2, Package, ArrowRight, Home } from "lucide-react";
+import { CheckCircle2, Package, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/lib/store/useCart";
 
 export default function OrderSuccessPage() {
@@ -10,8 +10,9 @@ export default function OrderSuccessPage() {
   const [mounted, setMounted] = useState(false);
   const { clearCart } = useCartStore();
 
+  // Sepet temizleme gibi işlemlerin istemci tarafında sorunsuz çalışması için 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
     let storedId = sessionStorage.getItem("lastOrderId");
     if (!storedId) {
       // Fallback if accessed directly

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { siteConfig } from "@/lib/siteConfig";
-import { ChevronRight, Package, Truck, Clock, AlertTriangle } from "lucide-react";
+import { ChevronRight, Package, Truck, AlertTriangle } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Kargo & Teslimat",

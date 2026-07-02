@@ -8,6 +8,7 @@ interface FavoritesStore {
   isFavorite: (productId: string) => boolean;
 }
 
+// Favori verilerini sayfa yenilense bile korumak için Zustand'ın persist middleware'i ile localStorage kullanılır.
 export const useFavoritesStore = create<FavoritesStore>()(
   persist(
     (set, get) => ({

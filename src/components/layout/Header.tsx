@@ -41,7 +41,7 @@ export function Header() {
   const mobileSearchRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
@@ -65,18 +65,25 @@ export function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Yönlendirme (route) değiştiğinde dropdown'ı kapat ve aramayı temizle
   useEffect(() => {
-    setShowDropdown(false);
-    setSearchQuery("");
+    setTimeout(() => {
+      setShowDropdown(false);
+      setSearchQuery("");
+    }, 0);
   }, [pathname]);
 
   useEffect(() => {
     if (!searchQuery.trim()) {
-      setSearchResults([]);
-      setShowDropdown(false);
+      setTimeout(() => {
+        setSearchResults([]);
+        setShowDropdown(false);
+      }, 0);
       return;
     }
 
+    // Kullanıcı yazmayı bitirdikten 300ms sonra arama yapılır (Debouncing)
+    // Böylece her tuşa basıldığında gereksiz API/Arama isteği atılması önlenir
     const timer = setTimeout(async () => {
       setIsSearching(true);
       const results = await searchProducts(searchQuery);

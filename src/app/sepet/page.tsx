@@ -11,7 +11,9 @@ export default function CartPage() {
   const [mounted, setMounted] = useState(false);
   const { items, updateQuantity, removeItem, clearCart, getTotalPrice } = useCartStore();
 
-  useEffect(() => { setMounted(true); }, []);
+  // Zustand (localStorage) verilerinin sunucu ve istemci arasında uyuşmazlık (hydration error)
+  // yaratmaması için sayfa tamamen yüklendikten sonra gösterilmesini sağlarız.
+  useEffect(() => { setTimeout(() => setMounted(true), 0); }, []);
   if (!mounted) return null;
 
   const subtotal = getTotalPrice();

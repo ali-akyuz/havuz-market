@@ -9,8 +9,10 @@ export function CartButton() {
   const [mounted, setMounted] = useState(false);
   const getTotalItems = useCartStore((state) => state.getTotalItems);
 
+  // Hydration sorunlarını engellemek için bileşen yüklendiğini işaretliyoruz
+  // Hydration sorunlarını engellemek için bileşen yüklendiğini işaretliyoruz
   useEffect(() => {
-    setMounted(true);
+    setTimeout(() => setMounted(true), 0);
   }, []);
 
   return (

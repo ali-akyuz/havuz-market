@@ -7,11 +7,7 @@
     "dev": "dotenv -e .env -- tsx watch src/server.ts",
     "build": "prisma generate && tsc",
     "start": "node dist/server.js",
-    "db:deploy": "prisma migrate deploy",
-    "seed": "tsx prisma/seed_runner.ts"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "db:deploy": "prisma migrate deploy"
   },
   "keywords": [],
   "author": "",

@@ -189,8 +189,10 @@ export function Header() {
                 </div>
               </div>
               <div className="flex flex-col leading-none">
-                <span className="text-xl font-black text-navy-900 tracking-tight">{siteConfig.name}</span>
-                <span className="text-[10px] text-navy-400 font-medium tracking-widest uppercase">Havuz Ekipmanları</span>
+                <span className="text-xl font-black text-navy-900 tracking-tight">
+                  Havuz<span className="text-turquoise-500">Market</span>
+                </span>
+                <span className="text-[10px] text-navy-400 font-medium tracking-widest uppercase mt-0.5">Havuz Ekipmanları</span>
               </div>
             </Link>
 

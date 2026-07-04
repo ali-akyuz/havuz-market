@@ -1,22 +1,32 @@
 "use strict";
+/**
+ * errorHandler.ts — Merkezi hata yönetimi middleware'i.
+ *
+ * Express'te bir route'dan next(error) çağrıldığında bu middleware devreye girer.
+ * Zod doğrulama hatalarını ve genel sunucu hatalarını burada yakalayıp
+ * düzenli bir JSON yanıtı döndürürüz.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.errorHandler = void 0;
 const zod_1 = require("zod");
-const errorHandler = (err, req, res, next) => {
-    console.error("Error:", err);
+const errorHandler = (err, req, res, _next) => {
+    console.error('Sunucu hatası:', err);
+    // Zod doğrulama hatası mı? (örn: eksik alan, yanlış format)
     if (err instanceof zod_1.ZodError) {
         return res.status(400).json({
             success: false,
-            message: "Validation failed",
-            errors: err.errors,
+            message: 'Gönderilen veriler geçersiz.',
+            errors: err.issues.map((e) => ({
+                field: e.path.join('.'),
+                message: e.message,
+            })),
         });
     }
-    const statusCode = err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-    res.status(statusCode).json({
+    // Genel hata
+    const message = err instanceof Error ? err.message : 'Sunucu hatası oluştu.';
+    res.status(500).json({
         success: false,
         message,
-        ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
     });
 };
 exports.errorHandler = errorHandler;

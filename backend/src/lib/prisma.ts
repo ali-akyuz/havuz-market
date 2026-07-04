@@ -2,19 +2,19 @@ import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
-const databaseUrl = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL;
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL environment variable bulunamadı.");
+if (!connectionString) {
+  throw new Error("DATABASE_URL bulunamadı.");
 }
+
+const adapter = new PrismaPg({
+  connectionString,
+});
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;
 };
-
-const adapter = new PrismaPg({
-  connectionString: databaseUrl,
-});
 
 const prisma =
   globalForPrisma.prisma ??

@@ -83,7 +83,7 @@ const productSchema = z.object({
   imageUrls: z.array(z.string()).default([]),
   isFeatured: z.boolean().default(false),
   isActive: z.boolean().default(true),
-  categoryId: z.string().uuid('Geçerli bir kategori seçin'),
+  categoryId: z.string().min(1, 'Geçerli bir kategori seçin'),
 });
 
 // POST /api/products (Admin)

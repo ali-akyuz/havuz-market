@@ -25,7 +25,7 @@ const orderSchema = z.object({
   items: z
     .array(
       z.object({
-        productId: z.string().uuid('Geçersiz ürün ID'),
+        productId: z.string().min(1, 'Geçersiz ürün ID'),
         quantity: z.number().int().positive('Miktar en az 1 olmalı'),
       })
     )

@@ -28,15 +28,15 @@
     "pg": "^8.22.0",
     "prisma": "^7.8.0",
     "ws": "^8.21.0",
-    "zod": "^4.4.3"
-  },
-  "devDependencies": {
+    "zod": "^4.4.3",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.1.0",
+    "typescript": "^6.0.3"
+  },
+  "devDependencies": {
     "dotenv-cli": "^11.0.0",
     "ts-node": "^10.9.2",
-    "tsx": "^4.23.0",
-    "typescript": "^6.0.3"
+    "tsx": "^4.23.0"
   }
 }

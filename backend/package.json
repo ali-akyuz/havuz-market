@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "dotenv -e .env -- tsx watch src/server.ts",
     "build": "tsc",
+    "build:render": "rm -rf package-lock.json node_modules && npm install && npx prisma generate && tsc",
     "start": "node dist/server.js",
-    "seed": "tsx prisma/seed_runner.ts",
-    "postinstall": "npx prisma generate"
+    "seed": "tsx prisma/seed_runner.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

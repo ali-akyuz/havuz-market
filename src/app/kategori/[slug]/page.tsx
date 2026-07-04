@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { CategoryClient } from "@/components/product/CategoryClient";
 import { Suspense } from "react";
 
+export const dynamic = 'force-dynamic';
+
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ q?: string }>;

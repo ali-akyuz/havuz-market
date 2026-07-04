@@ -7,6 +7,8 @@ import { BrandStrip } from "@/components/home/BrandStrip";
 import { Newsletter } from "@/components/home/Newsletter";
 import { Shield, Truck, HeadphonesIcon, RotateCcw } from "lucide-react";
 
+export const dynamic = 'force-dynamic';
+
 const trustFeatures = [
   { icon: <Truck className="w-6 h-6" />, title: "Ücretsiz Kargo", desc: "1.000₺ üzeri tüm siparişlerde" },
   { icon: <Shield className="w-6 h-6" />, title: "2 Yıl Garanti", desc: "Yetkili servis güvencesi" },

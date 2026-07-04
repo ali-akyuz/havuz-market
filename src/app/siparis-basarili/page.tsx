@@ -4,28 +4,53 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CheckCircle2, Package, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/lib/store/useCart";
+import { fetchApi } from "@/lib/api";
 
 export default function OrderSuccessPage() {
   const [orderNumber, setOrderNumber] = useState<string>("");
+  const [statusLabel, setStatusLabel] = useState("Hazırlanıyor");
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { clearCart } = useCartStore();
 
-  // Sepet temizleme gibi işlemlerin istemci tarafında sorunsuz çalışması için 
   useEffect(() => {
-    setTimeout(() => setMounted(true), 0);
-    let storedId = sessionStorage.getItem("lastOrderId");
-    if (!storedId) {
-      // Fallback if accessed directly
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      let code = "";
-      for (let i = 0; i < 8; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    const loadOrder = async () => {
+      setMounted(true);
+
+      let storedId = sessionStorage.getItem("lastOrderId");
+      if (!storedId) {
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let code = "";
+        for (let i = 0; i < 8; i++) {
+          code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        storedId = `HM-${code}`;
+        sessionStorage.setItem("lastOrderId", storedId);
       }
-      storedId = `HM-${code}`;
-      sessionStorage.setItem("lastOrderId", storedId);
-    }
-    setOrderNumber(storedId);
-    clearCart();
+
+      setOrderNumber(storedId);
+
+      try {
+        const res = await fetchApi(`/orders/${encodeURIComponent(storedId)}`);
+        if (res.success) {
+          setOrderNumber(res.data.orderCode);
+          if (res.data.status === "PENDING") {
+            setStatusLabel("Hazırlanıyor");
+          } else if (res.data.status === "PROCESSING") {
+            setStatusLabel("İşleniyor");
+          } else {
+            setStatusLabel("Tamamlandı");
+          }
+          clearCart();
+        }
+      } catch {
+        setStatusLabel("Bilgi alınamadı");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadOrder();
   }, [clearCart]);
 
   if (!mounted) return null;
@@ -45,7 +70,9 @@ export default function OrderSuccessPage() {
 
         <h1 className="text-3xl font-black text-navy-900 mb-3">Siparişiniz Alındı</h1>
         <p className="text-navy-500 text-lg mb-8 leading-relaxed">
-          Siparişiniz başarıyla oluşturuldu. Siparişiniz en kısa sürede hazırlanacaktır.
+          {loading
+            ? "Sipariş bilgileri getiriliyor..."
+            : "Siparişiniz başarıyla oluşturuldu. Siparişiniz en kısa sürede hazırlanacaktır."}
         </p>
 
         {/* Order details card */}
@@ -65,7 +92,7 @@ export default function OrderSuccessPage() {
               { label: "Tahmini Teslimat", value: "2-4 İş Günü" },
               { label: "Kargo Firması", value: "Yurtiçi Kargo" },
               { label: "Ödeme Durumu", value: "✓ Onaylandı" },
-              { label: "Sipariş Durumu", value: "Hazırlanıyor" },
+              { label: "Sipariş Durumu", value: statusLabel },
             ].map(({ label, value }) => (
               <div key={label} className="bg-navy-50 rounded-xl p-3">
                 <p className="text-xs text-navy-500 mb-0.5">{label}</p>

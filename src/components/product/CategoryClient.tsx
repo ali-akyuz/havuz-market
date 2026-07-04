@@ -194,7 +194,9 @@ export function CategoryClient({ category, products }: CategoryClientProps) {
             <p className="text-navy-300 text-lg">{category.description}</p>
           </div>
           <div className="hidden lg:block relative w-40 h-40 opacity-80">
-            <Image src={category.image} alt={category.name} fill className="object-contain" sizes="160px" />
+            {category.image && (
+              <Image src={category.image} alt={category.name} fill className="object-contain" sizes="160px" />
+            )}
           </div>
         </div>
       </div>

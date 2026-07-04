@@ -15,7 +15,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const products = await getProductsByCategory(category.id);
+  const products = await getProductsByCategory(category.slug);
 
   return (
     <Suspense fallback={<div className="min-h-screen" />}>

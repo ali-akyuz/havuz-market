@@ -277,6 +277,19 @@ export function Header() {
             {/* Actions */}
             <div className="flex items-center gap-1 ml-auto">
               <Link
+                href="/login"
+                className="hidden sm:flex items-center gap-2 p-2.5 rounded-xl hover:bg-navy-50 text-navy-600 hover:text-turquoise-600 transition-all font-semibold text-sm"
+              >
+                Giriş Yap
+              </Link>
+              <Link
+                href="/register"
+                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-turquoise-500 hover:bg-turquoise-600 text-white transition-all font-semibold text-sm shadow-sm hover:shadow-md"
+              >
+                Üye Ol
+              </Link>
+              
+              <Link
                 href="/favoriler"
                 className="relative p-2.5 rounded-xl hover:bg-navy-50 text-navy-600 hover:text-turquoise-600 transition-all group"
                 aria-label="Favoriler"

@@ -1,0 +1,73 @@
+// Bu dosya Prisma ORM'in veritabanı şemasını tanımlar.
+// Her "model" bir veritabanı tablosuna karşılık gelir.
+// Fiyatlar kuruş cinsinden int olarak tutulur (1 TL = 100 kuruş).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Ürün kategorileri (örn: Havuz Robotu, Kimyasallar)
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  products  Product[]
+}
+
+// Ürünler
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String
+  priceKurus  Int      // Fiyat kuruş cinsinden (örn: 150000 = 1500.00 TL)
+  stock       Int      @default(0)
+  imageUrls   String[] // Birden fazla görsel URL'si
+  isFeatured  Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId  String
+  category    Category   @relation(fields: [categoryId], references: [id])
+
+  orderItems  OrderItem[]
+}
+
+// Müşteri siparişleri
+model Order {
+  id            String   @id @default(uuid())
+  orderCode     String   @unique // Örn: HM-A1B2C3D4
+  customerName  String
+  customerEmail String
+  customerPhone String
+  address       String   // Tam adres tek bir alanda
+  subtotalKurus Int
+  shippingKurus Int
+  totalKurus    Int
+  status        String   @default("PENDING") // PENDING, PROCESSING, DELIVERED
+  createdAt     DateTime @default(now())
+
+  items OrderItem[]
+}
+
+// Siparişteki her bir ürün satırı
+model OrderItem {
+  id             String  @id @default(uuid())
+  orderId        String
+  productId      String
+  productName    String  // Siparişin verildiği andaki ürün adı
+  quantity       Int
+  unitPriceKurus Int     // Siparişin verildiği andaki birim fiyat
+  lineTotalKurus Int     // unitPriceKurus * quantity
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}

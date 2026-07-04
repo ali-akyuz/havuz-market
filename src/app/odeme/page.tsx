@@ -8,6 +8,7 @@ import { Shield, CreditCard, Lock, Check } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { fetchApi } from "@/lib/api";
 
 interface FormData {
   firstName: string; lastName: string; email: string; phone: string;
@@ -147,27 +148,46 @@ export default function CheckoutPage() {
     return isValid;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
     
-    // Generate order ID
-    const generateOrderCode = () => {
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      let code = "";
-      for (let i = 0; i < 8; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return `HM-${code}`;
-    };
-    
-    const orderId = generateOrderCode();
-    sessionStorage.setItem("lastOrderId", orderId);
+    try {
+      // Sadece müşteri bilgisi ve sepet içeriğini gönder.
+      // Fiyat, toplam ve kart bilgisi asla gönderilmez.
+      const orderPayload = {
+        customerName: `${form.firstName} ${form.lastName}`.trim(),
+        customerEmail: form.email,
+        customerPhone: form.phone,
+        address: `${form.address}, ${form.district}/${form.city} ${form.zipCode}`,
+        items: items.map(item => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+        })),
+      };
 
-    setTimeout(() => {
-      router.push("/siparis-basarili");
-    }, 1200);
+      const res = await fetchApi('/orders', {
+        method: 'POST',
+        body: JSON.stringify(orderPayload),
+      });
+
+      if (res.success) {
+        // Backend'den gelen sipariş kodunu oturum deposuna yaz
+        sessionStorage.setItem("lastOrderId", res.data.orderCode);
+        router.push("/siparis-basarili");
+      } else {
+        alert(res.message || "Sipariş oluşturulurken bir hata oluştu.");
+        setSubmitting(false);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message || "Bir hata oluştu, lütfen tekrar deneyin.");
+      } else {
+        alert("Bir hata oluştu, lütfen tekrar deneyin.");
+      }
+      setSubmitting(false);
+    }
   };
 
 

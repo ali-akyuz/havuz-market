@@ -22,20 +22,8 @@ const PORT = process.env.PORT || 4000;
 
 // --- MIDDLEWARE ---
 
-// CORS: Hangi frontend adreslerinden istek kabul edilecek
-const allowedOrigins = (process.env.FRONTEND_ORIGINS || 'http://localhost:3000').split(',');
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // origin yoksa (Postman gibi araçlar) veya whitelist'teyse izin ver
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Bu adres CORS politikası tarafından engellendi.'));
-      }
-    },
-  })
-);
+// CORS: Tüm frontend adreslerine izin ver (Stajyer projesi olduğu için esnek tutuyoruz)
+app.use(cors());
 
 // Gelen JSON isteklerini otomatik parse et
 app.use(express.json());

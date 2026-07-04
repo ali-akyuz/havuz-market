@@ -1,9 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
+// Lokal testler için .env okuma (Render'da bu otomatik ortam değişkenlerinden gelir)
 try {
   const envPath = resolve(__dirname, '../../.env');
   const envContent = readFileSync(envPath, 'utf8');
@@ -19,19 +18,17 @@ try {
     }
   }
 } catch (e: any) {
-  console.warn('env yüklenemedi:', e.message);
+  console.warn('Lokal env dosyası bulunamadı, sistem değişkenleri kullanılacak.');
 }
 
 const DB_URL = process.env.DATABASE_URL;
 if (!DB_URL || !DB_URL.startsWith('postgres')) {
-  throw new Error(`Geçersiz DATABASE_URL: "${DB_URL}"`);
+  console.error(`Geçersiz veya eksik DATABASE_URL: "${DB_URL}"`);
 }
 
 /**
- * lib/prisma.ts — Singleton Prisma istemcisi (Prisma 7 + pg adapter)
+ * lib/prisma.ts — Singleton Prisma istemcisi
  */
-const pool = new pg.Pool({ connectionString: DB_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 export default prisma;

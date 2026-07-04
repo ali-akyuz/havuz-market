@@ -107,27 +107,12 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-turquoise-500 px-3 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-turquoise-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-turquoise-600 transition-all hover:shadow-lg hover:shadow-turquoise-500/30"
-                onClick={() => alert("Kayıt olma özelliği şu an için aktif değildir. (Phase 2 Mockup)")}
               >
                 Kayıt Ol <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </form>
 
-          <div className="mt-8">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t border-navy-200" />
-              </div>
-              <div className="relative flex justify-center text-sm font-medium leading-6">
-                <span className="bg-white px-6 text-navy-500">Demo Bilgilendirmesi</span>
-              </div>
-            </div>
-            
-            <div className="mt-6 text-center text-xs text-navy-400 bg-navy-50 p-4 rounded-xl border border-navy-100">
-              Bu sayfa bir stajyer projesi (Phase 2) için hazırlanan arayüz (mockup) tasarımıdır. Arka planda herhangi bir kullanıcı veritabanı bulunmamaktadır.
-            </div>
-          </div>
         </div>
       </div>
     </div>

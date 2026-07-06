@@ -236,7 +236,7 @@ export default function CheckoutPage() {
                   <Field label="Ad" field="firstName" value={form.firstName} onChange={(v) => update("firstName", formatName(v))} error={errors.firstName} placeholder="Ahmet" />
                   <Field label="Soyad" field="lastName" value={form.lastName} onChange={(v) => update("lastName", formatName(v))} error={errors.lastName} placeholder="Yılmaz" />
                   <Field label="E-posta" field="email" type="email" inputMode="email" value={form.email} update={update} error={errors.email} placeholder="ahmet@email.com" className="sm:col-span-2" />
-                  <Field label="Telefon" field="phone" type="tel" inputMode="numeric" value={form.phone} onChange={(v) => update("phone", formatPhone(v))} error={errors.phone} placeholder="0534 792 65 83" />
+                  <Field label="Telefon" field="phone" type="tel" inputMode="numeric" value={form.phone} onChange={(v) => update("phone", formatPhone(v))} error={errors.phone} placeholder="0539 130 22 14" />
                   <Field label="Şehir" field="city" value={form.city} onChange={(v) => update("city", formatName(v))} error={errors.city} placeholder="İstanbul" />
                   <Field label="İlçe" field="district" value={form.district} onChange={(v) => update("district", formatName(v))} error={errors.district} placeholder="Kadıköy" />
                   <Field label="Posta Kodu" field="zipCode" type="text" inputMode="numeric" value={form.zipCode} onChange={(v) => update("zipCode", formatZipCode(v))} error={errors.zipCode} placeholder="34700" />

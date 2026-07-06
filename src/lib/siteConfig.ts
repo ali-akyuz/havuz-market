@@ -5,8 +5,8 @@
 export const siteConfig = {
   name: "Havuz Market",
   tagline: "Premium Havuz Ekipmanları",
-  phone: "0534 792 65 83",
-  phoneHref: "tel:+905347926583",
+  phone: "0539 130 22 14",
+  phoneHref: "tel:+905391302214",
   email: "destek@havuzmarket.com",
   emailHref: "mailto:destek@havuzmarket.com",
   address: {

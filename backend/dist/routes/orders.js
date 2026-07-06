@@ -26,7 +26,7 @@ const orderSchema = zod_1.z.object({
     address: zod_1.z.string().min(10, 'Tam adres giriniz'),
     items: zod_1.z
         .array(zod_1.z.object({
-        productId: zod_1.z.string().uuid('Geçersiz ürün ID'),
+        productId: zod_1.z.string().min(1, 'Geçersiz ürün ID'),
         quantity: zod_1.z.number().int().positive('Miktar en az 1 olmalı'),
     }))
         .min(1, 'Sepet boş olamaz'),

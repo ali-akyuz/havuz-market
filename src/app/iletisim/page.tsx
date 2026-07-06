@@ -260,7 +260,7 @@ export default function ContactPage() {
                       </label>
                       <input
                         type="tel"
-                        placeholder="0534 792 65 83"
+                        placeholder="0539 130 22 14"
                         value={form.phone}
                         onChange={(e) => update("phone", formatPhone(e.target.value))}
                         className={inputClass("phone")}

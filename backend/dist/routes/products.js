@@ -72,7 +72,7 @@ const productSchema = zod_1.z.object({
     imageUrls: zod_1.z.array(zod_1.z.string()).default([]),
     isFeatured: zod_1.z.boolean().default(false),
     isActive: zod_1.z.boolean().default(true),
-    categoryId: zod_1.z.string().uuid('Geçerli bir kategori seçin'),
+    categoryId: zod_1.z.string().min(1, 'Geçerli bir kategori seçin'),
 });
 // POST /api/products (Admin)
 router.post('/', async (req, res, next) => {

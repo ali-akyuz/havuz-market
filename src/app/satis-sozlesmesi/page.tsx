@@ -34,7 +34,7 @@ export default function SalesAgreementPage() {
           <ul>
             <li><strong>Ünvanı:</strong> {siteConfig.name}</li>
             <li><strong>Adresi:</strong> Modern Çarşı, Savaş Mahallesi, Mareşal Fevzi Çakmak Caddesi, 31200 İskenderun / Hatay, Türkiye</li>
-            <li><strong>Telefon:</strong> 0534 792 65 83</li>
+            <li><strong>Telefon:</strong> 0539 130 22 14</li>
             <li><strong>E-posta:</strong> {siteConfig.email}</li>
           </ul>
 

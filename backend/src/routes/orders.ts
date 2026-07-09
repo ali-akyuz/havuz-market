@@ -22,6 +22,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import prisma from '../lib/prisma.js';
+import { requireAuth, optionalAuth } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -54,6 +55,44 @@ const generateOrderCode = (): string => {
   ).join('');
   return `HM-${randomPart}`;
 };
+
+// GET /api/orders — Uyeye ait siparisleri listeler (Zorunlu Auth)
+router.get('/', requireAuth, async (req, res, next) => {
+  try {
+    const orders = await prisma.order.findMany({
+      where: { userId: req.user!.id },
+      orderBy: { createdAt: 'desc' },
+      include: { items: true },
+    });
+
+    res.status(200).json({ success: true, data: orders });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/orders/guest-lookup — Misafir siparis takibi (orderCode + email gerekir)
+router.post('/guest-lookup', async (req, res, next) => {
+  try {
+    const { orderCode, email } = req.body;
+    if (!orderCode || !email) {
+      return res.status(400).json({ success: false, message: 'Sipariş kodu ve e-posta zorunludur.' });
+    }
+
+    const order = await prisma.order.findFirst({
+      where: { orderCode, customerEmail: email },
+      include: { items: true },
+    });
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Sipariş bulunamadı veya e-posta eşleşmiyor.' });
+    }
+
+    res.status(200).json({ success: true, data: order });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // GET /api/orders/:orderCode — Siparis detaylarini getirir
 // Hem odeme basari/basarisiz sayfalari hem de admin paneli bu endpoint'i kullanir.
@@ -97,7 +136,7 @@ router.get('/:orderCode', async (req, res, next) => {
 // POST /api/orders — Yeni siparis olusturur
 // Frontend'den sadece musteri bilgisi ve urun ID'leri + adetleri gelir.
 // Fiyatlar, toplam ve kargo ucreti sunucu tarafinda hesaplanir.
-router.post('/', async (req, res, next) => {
+router.post('/', optionalAuth, async (req, res, next) => {
   try {
     // 1. ADIM: Gelen veriyi Zod ile dogrula
     // Eger eksik alan varsa veya tip yanliş ise Zod hata firlatir,
@@ -168,6 +207,7 @@ router.post('/', async (req, res, next) => {
     const order = await prisma.order.create({
       data: {
         orderCode,
+        userId:          req.user?.id || null, // Uye ise bagla, degilse misafir
         customerName:    data.customerName,
         customerEmail:   data.customerEmail,
         customerPhone:   data.customerPhone,

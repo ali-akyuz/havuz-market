@@ -11,6 +11,8 @@ import { cn, formatCurrency } from "@/lib/utils";
 import { siteConfig } from "@/lib/siteConfig";
 import { searchProducts } from "@/actions/search";
 import { Product } from "@/services/types";
+import { useAuthStore } from "@/lib/store/useAuth";
+import { LogOut, User } from "lucide-react";
 
 const categories = [
   { slug: "havuz-robotlari", name: "Havuz Robotları", subs: ["Zemin Robotlar", "Duvar & Zemin", "Akıllı Sistemler"] },
@@ -36,6 +38,8 @@ export function Header() {
   const pathname = usePathname();
   const cartItems = useCartStore((s) => s.items);
   const favItems = useFavoritesStore((s) => s.items);
+  const { user, logout } = useAuthStore();
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
   const dropdownTimer = useRef<NodeJS.Timeout | null>(null);
   const desktopSearchRef = useRef<HTMLFormElement>(null);
   const mobileSearchRef = useRef<HTMLFormElement>(null);
@@ -278,18 +282,58 @@ export function Header() {
 
             {/* Actions */}
             <div className="flex items-center gap-1 ml-auto">
-              <Link
-                href="/login"
-                className="hidden sm:flex items-center gap-2 p-2.5 rounded-xl hover:bg-navy-50 text-navy-600 hover:text-turquoise-600 transition-all font-semibold text-sm"
-              >
-                Giriş Yap
-              </Link>
-              <Link
-                href="/register"
-                className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-turquoise-500 hover:bg-turquoise-600 text-white transition-all font-semibold text-sm shadow-sm hover:shadow-md"
-              >
-                Üye Ol
-              </Link>
+              {mounted && user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    className="hidden sm:flex items-center gap-2 p-2.5 rounded-xl hover:bg-navy-50 text-navy-600 hover:text-turquoise-600 transition-all font-semibold text-sm"
+                  >
+                    <User className="w-5 h-5" />
+                    <span className="truncate max-w-[100px]">{user.name.split(" ")[0]}</span>
+                    <ChevronDown className={cn("w-3.5 h-3.5 transition-transform", showUserDropdown && "rotate-180")} />
+                  </button>
+                  {showUserDropdown && (
+                    <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl shadow-navy-900/10 border border-navy-100 overflow-hidden z-50">
+                      <div className="p-2">
+                        <Link
+                          href="/hesabim/siparisler"
+                          onClick={() => setShowUserDropdown(false)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-navy-700 hover:bg-turquoise-50 hover:text-turquoise-700 transition-colors"
+                        >
+                          Siparişlerim
+                        </Link>
+                        <div className="border-t border-navy-50 my-1"></div>
+                        <button
+                          onClick={() => {
+                            logout();
+                            setShowUserDropdown(false);
+                            router.push("/");
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Çıkış Yap
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="hidden sm:flex items-center gap-2 p-2.5 rounded-xl hover:bg-navy-50 text-navy-600 hover:text-turquoise-600 transition-all font-semibold text-sm"
+                  >
+                    Giriş Yap
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-turquoise-500 hover:bg-turquoise-600 text-white transition-all font-semibold text-sm shadow-sm hover:shadow-md"
+                  >
+                    Üye Ol
+                  </Link>
+                </>
+              )}
               
               <Link
                 href="/favoriler"

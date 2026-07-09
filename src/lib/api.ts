@@ -8,6 +8,8 @@
  * (örn: http://localhost:4000/api)
  */
 
+import { useAuthStore } from "./store/useAuth";
+
 // Backend API'nin temel URL'si
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
 
@@ -16,9 +18,19 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
  * Hata durumunda anlaşılır bir mesaj fırlatır.
  */
 export const fetchApi = async (endpoint: string, options?: RequestInit) => {
+  const token = useAuthStore.getState().token;
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_URL}${endpoint}`, {
-    headers: { 'Content-Type': 'application/json' },
     ...options,
+    headers: { ...headers, ...options?.headers },
   });
 
   // HTTP 4xx veya 5xx hatası varsa JSON'dan mesajı al ve fırlat

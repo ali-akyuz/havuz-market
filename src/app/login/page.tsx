@@ -2,8 +2,47 @@
 
 import Link from "next/link";
 import { Mail, Lock, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store/useAuth";
+import { fetchApi } from "@/lib/api";
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { login } = useAuthStore();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const res = await fetchApi("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (res.success && res.data) {
+        login(res.data.token, res.data.user);
+        router.push("/");
+      } else {
+        setError(res.message || "Giriş başarısız.");
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Giriş yapılırken bir hata oluştu.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -25,7 +64,12 @@ export default function LoginPage() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow-xl shadow-navy-900/5 sm:rounded-2xl sm:px-10 border border-navy-100">
-          <form className="space-y-6" action="#" method="POST" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="p-3 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm">
+                {error}
+              </div>
+            )}
             <div>
               <label htmlFor="email" className="block text-sm font-semibold leading-6 text-navy-900">
                 E-posta Adresi
@@ -40,6 +84,8 @@ export default function LoginPage() {
                   type="email"
                   autoComplete="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="block w-full rounded-xl border-0 py-3.5 pl-11 pr-4 text-navy-900 ring-1 ring-inset ring-navy-200 placeholder:text-navy-300 focus:ring-2 focus:ring-inset focus:ring-turquoise-500 sm:text-sm sm:leading-6 transition-all"
                   placeholder="ornek@email.com"
                 />
@@ -60,6 +106,8 @@ export default function LoginPage() {
                   type="password"
                   autoComplete="current-password"
                   required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="block w-full rounded-xl border-0 py-3.5 pl-11 pr-4 text-navy-900 ring-1 ring-inset ring-navy-200 placeholder:text-navy-300 focus:ring-2 focus:ring-inset focus:ring-turquoise-500 sm:text-sm sm:leading-6 transition-all"
                   placeholder="••••••••"
                 />
@@ -89,9 +137,14 @@ export default function LoginPage() {
             <div>
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-turquoise-500 px-3 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-turquoise-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-turquoise-600 transition-all hover:shadow-lg hover:shadow-turquoise-500/30"
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-turquoise-500 px-3 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-turquoise-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-turquoise-600 transition-all hover:shadow-lg hover:shadow-turquoise-500/30 disabled:opacity-70"
               >
-                Giriş Yap <ArrowRight className="w-4 h-4" />
+                {loading ? "Giriş Yapılıyor..." : (
+                  <>
+                    Giriş Yap <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -101,3 +154,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

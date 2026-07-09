@@ -1,4 +1,4 @@
-﻿/**
+/**
  * server.ts — Backend'in Ana Baslangic Noktasi
  *
  * Bu dosya projenin "kalbi" sayilabilir. Express sunucusunu burada
@@ -19,6 +19,7 @@ import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
 import paytrRoutes from './routes/paytr.js';
 import paymentRoutes from './routes/payments.js';
+import authRoutes from './routes/auth.js';
 
 // .env dosyasindaki gizli degerleri (API anahtarlari, veritabani URL'si)
 // uygulama geneline yukler. Bu satirdan sonra process.env.XXX seklinde ulasabiliriz.
@@ -48,6 +49,7 @@ app.use(express.urlencoded({ extended: true }));
 // Bu sekilde kod duzenlI ve okunakli kalir (Separation of Concerns prensibi).
 
 app.use('/api/health', healthRoutes);        // Sunucu saglik kontrolu
+app.use('/api/auth', authRoutes);            // Kullanıcı kimlik doğrulama
 app.use('/api/categories', categoryRoutes);  // Kategori islemleri
 app.use('/api/products', productRoutes);     // Urun islemleri
 app.use('/api/orders', orderRoutes);         // Siparis olusturma ve sorgulama

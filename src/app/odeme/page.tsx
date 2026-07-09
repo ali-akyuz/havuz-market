@@ -1,6 +1,7 @@
-﻿"use client";
+"use client";
 
 import { useCartStore } from "@/lib/store/useCart";
+import { useAuthStore } from "@/lib/store/useAuth";
 import { formatCurrency } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -60,6 +61,7 @@ export default function CheckoutPage() {
   const [mounted, setMounted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { items, getTotalPrice } = useCartStore();
+  const { user } = useAuthStore();
 
   const [form, setForm] = useState<FormData>({
     firstName: "", lastName: "", email: "", phone: "",
@@ -70,6 +72,20 @@ export default function CheckoutPage() {
   useEffect(() => {
     setTimeout(() => setMounted(true), 0);
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      const parts = user.name.split(" ");
+      setForm((prev) => ({
+        ...prev,
+        firstName: parts[0] || "",
+        lastName: parts.slice(1).join(" ") || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || prev.address,
+      }));
+    }
+  }, [user]);
 
   useEffect(() => {
     if (mounted && items.length === 0) router.replace("/sepet");

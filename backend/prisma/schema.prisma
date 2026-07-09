@@ -22,6 +22,21 @@ datasource db {
   // Veritabani URL'si .env dosyasindan okunur; koda yazilmaz!
 }
 
+// ── Kullanıcılar (Üyeler) ────────────────────────────────────────────────
+// Sadece kayıt olan kullanıcılar bu tabloya eklenir. Misafirler eklenmez.
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String   // bcrypt ile hashlenmis sifre
+  phone     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders    Order[]
+}
+
 // Urun kategorileri (orneg: Havuz Robotu, Kimyasallar, Pompalar)
 // slug: URL'de gozuken kisim (ornek: "havuz-robotu")
 model Category {
@@ -61,6 +76,11 @@ model Product {
 model Order {
   id            String   @id @default(uuid())
   orderCode     String   @unique // Frontend'e gonderilen siparis kodu (HM-XXXXXXXX)
+  
+  // Eger uye siparisi ise doldurulur. Misafir (guest) siparisi ise null kalir.
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+
   customerName  String
   customerEmail String
   customerPhone String

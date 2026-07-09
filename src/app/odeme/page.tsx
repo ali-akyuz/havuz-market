@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useCartStore } from "@/lib/store/useCart";
 import { formatCurrency } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Shield, CreditCard, Lock, Check } from "lucide-react";
+import { Shield, Lock, Check } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
@@ -13,8 +13,6 @@ import { fetchApi } from "@/lib/api";
 interface FormData {
   firstName: string; lastName: string; email: string; phone: string;
   address: string; city: string; district: string; zipCode: string;
-  cardName: string; cardNumber: string; expiry: string; cvv: string;
-  saveCard: boolean;
 }
 
 type FieldErrors = Partial<Record<keyof FormData, string>>;
@@ -30,13 +28,11 @@ interface FieldProps {
   update?: (field: keyof FormData, val: string) => void;
   value: string;
   error?: string;
-  onFocus?: () => void;
-  onBlur?: () => void;
 }
 
 const Field = ({
   label, field, type = "text", inputMode, placeholder, className = "",
-  onChange, update, value, error, onFocus, onBlur
+  onChange, update, value, error,
 }: FieldProps) => (
   <div className={className}>
     <label htmlFor={field} className="block text-sm font-semibold text-navy-700 mb-1.5">{label}</label>
@@ -49,8 +45,6 @@ const Field = ({
         if (onChange) onChange(e.target.value);
         else if (update) update(field, e.target.value);
       }}
-      onFocus={onFocus}
-      onBlur={onBlur}
       placeholder={placeholder}
       className={cn(
         "w-full h-12 px-4 rounded-xl border-2 text-sm bg-white text-navy-900 transition-colors focus:outline-none placeholder:text-navy-300",
@@ -70,13 +64,9 @@ export default function CheckoutPage() {
   const [form, setForm] = useState<FormData>({
     firstName: "", lastName: "", email: "", phone: "",
     address: "", city: "", district: "", zipCode: "",
-    cardName: "", cardNumber: "", expiry: "", cvv: "",
-    saveCard: false,
   });
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [isCardFlipped, setIsCardFlipped] = useState(false);
 
-  // Hydration sorunlarını engellemek için bileşen yüklendiğini işaretliyoruz
   useEffect(() => {
     setTimeout(() => setMounted(true), 0);
   }, []);
@@ -91,16 +81,13 @@ export default function CheckoutPage() {
   const shipping = subtotal > 1000 ? 0 : 49.90;
   const total = subtotal + shipping;
 
-  const update = (field: keyof FormData, value: string | boolean) => {
+  const update = (field: keyof FormData, value: string) => {
     setForm(f => ({ ...f, [field]: value }));
     if (errors[field]) setErrors(e => { const n = { ...e }; delete n[field]; return n; });
   };
 
-  // İsim ve şehir gibi alanlarda sadece harflere izin veriyoruz
-  const formatName = (val: string) => val.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ\s]/g, "");
-
-  // Telefon numarasını "05XX XXX XX XX" formatına dönüştürüyoruz
-  const formatPhone = (val: string) => {
+  const formatName    = (val: string) => val.replace(/[^a-zA-ZğüşıöçĞÜŞİÖÇ\s]/g, "");
+  const formatPhone   = (val: string) => {
     let numbers = val.replace(/\D/g, "");
     if (numbers.length > 0 && !numbers.startsWith("0")) numbers = "0" + numbers;
     numbers = numbers.slice(0, 11);
@@ -111,40 +98,22 @@ export default function CheckoutPage() {
     }
     return formatted;
   };
-
   const formatZipCode = (val: string) => val.replace(/\D/g, "").slice(0, 5);
 
-  // Kredi kartı numarasını 4 hanede bir boşluk bırakacak şekilde formatlıyoruz
-  const formatCard = (val: string) =>
-    val.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ").trim();
-
-  // Son kullanma tarihini AA/YY formatına çeviriyoruz
-  const formatExpiry = (val: string) =>
-    val.replace(/\D/g, "").slice(0, 4).replace(/(\d{2})(?=\d)/, "$1/");
-
-  // Tüm form verilerinin doğruluğunu (validation) kontrol ediyoruz
   const validate = (): boolean => {
     const e: FieldErrors = {};
     if (!form.firstName.trim()) e.firstName = "Ad gerekli";
-    if (!form.lastName.trim()) e.lastName = "Soyad gerekli";
+    if (!form.lastName.trim())  e.lastName  = "Soyad gerekli";
     if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(form.email)) e.email = "Geçerli e-posta girin";
     if (form.phone.replace(/\D/g, "").length < 11) e.phone = "11 haneli telefon girin";
-    if (!form.address.trim()) e.address = "Adres gerekli";
-    if (!form.city.trim()) e.city = "Şehir gerekli";
+    if (!form.address.trim())  e.address  = "Adres gerekli";
+    if (!form.city.trim())     e.city     = "Şehir gerekli";
     if (!form.district.trim()) e.district = "İlçe gerekli";
     if (form.zipCode.length < 5) e.zipCode = "Geçerli posta kodu girin";
-    if (!form.cardName.trim()) e.cardName = "Kart sahibi adı gerekli";
-    if (form.cardNumber.replace(/\s/g, "").length < 16) e.cardNumber = "Geçerli kart numarası girin";
-    if (!/^[0-9]{2}\/[0-9]{2}$/.test(form.expiry)) e.expiry = "AA/YY formatında girin";
-    if (form.cvv.length < 3) e.cvv = "CVV gerekli";
-    
+
     setErrors(e);
     const isValid = Object.keys(e).length === 0;
-    
-    // Hata varsa sayfanın en üstüne (hatalı alana) scroll atıyoruz
-    if (!isValid) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    if (!isValid) window.scrollTo({ top: 0, behavior: "smooth" });
     return isValid;
   };
 
@@ -152,7 +121,7 @@ export default function CheckoutPage() {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
-    
+
     try {
       // Sadece müşteri bilgisi ve sepet içeriğini gönder.
       // Fiyat, toplam ve kart bilgisi asla gönderilmez.
@@ -167,15 +136,15 @@ export default function CheckoutPage() {
         })),
       };
 
-      const res = await fetchApi('/orders', {
-        method: 'POST',
+      const res = await fetchApi("/orders", {
+        method: "POST",
         body: JSON.stringify(orderPayload),
       });
 
       if (res.success) {
-        // Backend'den gelen sipariş kodunu oturum deposuna yaz
-        sessionStorage.setItem("lastOrderId", res.data.orderCode);
-        router.push("/siparis-basarili");
+        // Sepet burada temizlenmez — ödeme tamamlandıktan sonra temizlenir.
+        // Kullanıcıyı PayTR iFrame ödeme sayfasına yönlendir.
+        router.push(`/payment/${res.data.orderCode}`);
       } else {
         alert(res.message || "Sipariş oluşturulurken bir hata oluştu.");
         setSubmitting(false);
@@ -190,13 +159,12 @@ export default function CheckoutPage() {
     }
   };
 
-
   return (
     <div className="min-h-screen bg-slate-50 py-10">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-black text-navy-900">Güvenli Ödeme</h1>
+          <h1 className="text-3xl font-black text-navy-900">Teslimat Bilgileri</h1>
           <div className="flex items-center gap-2 text-sm text-navy-500">
             <Lock className="w-4 h-4 text-green-500" />
             256-bit SSL Şifreleme
@@ -205,7 +173,7 @@ export default function CheckoutPage() {
 
         {/* Progress steps */}
         <div className="flex items-center gap-2 mb-8">
-          {["Sepet", "Adres & Ödeme", "Onay"].map((step, i) => (
+          {["Sepet", "Adres Bilgileri", "Güvenli Ödeme"].map((step, i) => (
             <div key={step} className="flex items-center gap-2">
               <div className={cn("flex items-center gap-2", i < 2 ? "text-turquoise-600" : "text-navy-400")}>
                 <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
@@ -224,9 +192,8 @@ export default function CheckoutPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col lg:flex-row gap-8">
-            {/* Left Forms */}
+            {/* Left — Adres Formu */}
             <div className="flex-grow space-y-6">
-              {/* Address */}
               <div className="bg-white rounded-2xl border border-navy-100 p-6">
                 <h2 className="font-black text-navy-900 text-lg mb-6 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-xl bg-navy-900 text-white text-sm flex items-center justify-center font-bold">1</span>
@@ -244,92 +211,22 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Payment */}
-              <div className="bg-white rounded-2xl border border-navy-100 p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="font-black text-navy-900 text-lg flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-xl bg-navy-900 text-white text-sm flex items-center justify-center font-bold">2</span>
-                    Ödeme Bilgileri
-                  </h2>
-                  <div className="flex items-center gap-2 text-xs text-green-600 bg-green-50 px-3 py-1.5 rounded-full border border-green-100">
-                    <Shield className="w-3.5 h-3.5" />
-                    Güvenli Ödeme
-                  </div>
+              {/* PayTR Bilgi Kutusu */}
+              <div className="bg-turquoise-50 border border-turquoise-100 rounded-2xl p-5 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-turquoise-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Shield className="w-5 h-5 text-white" />
                 </div>
-
-                {/* Card visual 3D */}
-                <div className="relative w-full max-w-xs mx-auto mb-8 h-48 perspective-1000" style={{ perspective: "1000px" }}>
-                  <div 
-                    className="w-full h-full relative transition-transform duration-700 shadow-xl rounded-2xl" 
-                    style={{ transformStyle: "preserve-3d", transform: isCardFlipped ? "rotateY(180deg)" : "rotateY(0deg)" }}
-                  >
-                    {/* Front Side */}
-                    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-navy-800 to-navy-950 rounded-2xl p-6 overflow-hidden" style={{ backfaceVisibility: "hidden" }}>
-                      <div className="absolute top-0 right-0 w-40 h-40 bg-turquoise-500/20 rounded-full blur-2xl" />
-                      <div className="text-navy-400 text-xs mb-8 font-mono uppercase tracking-widest">Kredi / Banka Kartı</div>
-                      <div className="text-white font-mono text-lg tracking-[4px] mb-4">
-                        {form.cardNumber || "•••• •••• •••• ••••"}
-                      </div>
-                      <div className="flex justify-between">
-                        <div>
-                          <div className="text-navy-400 text-[9px] uppercase tracking-widest mb-0.5">Kart Sahibi</div>
-                          <div className="text-white text-sm font-semibold">{form.cardName || "AD SOYAD"}</div>
-                        </div>
-                        <div>
-                          <div className="text-navy-400 text-[9px] uppercase tracking-widest mb-0.5">Son Kullanma</div>
-                          <div className="text-white text-sm font-semibold">{form.expiry || "AA/YY"}</div>
-                        </div>
-                        <CreditCard className="w-8 h-8 text-turquoise-400 self-end" />
-                      </div>
-                    </div>
-                    
-                    {/* Back Side */}
-                    <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-navy-800 to-navy-950 rounded-2xl overflow-hidden" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
-                      <div className="w-full h-10 bg-black/80 mt-6" />
-                      <div className="px-6 mt-4">
-                        <div className="w-full h-8 bg-white/10 rounded flex items-center justify-end px-3">
-                          <span className="text-white font-mono tracking-widest">{form.cvv || "•••"}</span>
-                        </div>
-                        <div className="text-[9px] text-navy-400 mt-2 text-right uppercase tracking-widest">CVV / Güvenlik Kodu</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field
-                    label="Kart Üzerindeki İsim" field="cardName" value={form.cardName} error={errors.cardName}
-                    placeholder="AHMET YILMAZ" className="sm:col-span-2"
-                    onChange={(v) => update("cardName", formatName(v).toUpperCase())}
-                  />
-                  <Field
-                    label="Kart Numarası" field="cardNumber" value={form.cardNumber} error={errors.cardNumber}
-                    placeholder="0000 0000 0000 0000" className="sm:col-span-2"
-                    onChange={(v) => update("cardNumber", formatCard(v))}
-                  />
-                  <Field
-                    label="Son Kullanma Tarihi" field="expiry" value={form.expiry} error={errors.expiry}
-                    placeholder="AA/YY"
-                    onChange={(v) => update("expiry", formatExpiry(v))}
-                  />
-                  <Field 
-                      label="CVV" 
-                      field="cvv" 
-                      type="text" 
-                      inputMode="numeric" 
-                      value={form.cvv} 
-                      onChange={(v) => update("cvv", v.replace(/\D/g, "").slice(0, 4))} 
-                      error={errors.cvv} 
-                      placeholder="***"
-                      // CVV alanına odaklanıldığında (focus) kartın arka yüzü animasyonla gösterilir
-                      onFocus={() => setIsCardFlipped(true)}
-                      onBlur={() => setIsCardFlipped(false)}
-                    />
+                <div>
+                  <p className="font-bold text-navy-900 mb-1">Güvenli Ödeme — PayTR</p>
+                  <p className="text-sm text-navy-600 leading-relaxed">
+                    Adres bilgilerinizi girdikten sonra güvenli PayTR ödeme sayfasına yönlendirileceksiniz.
+                    Kart bilgileriniz doğrudan PayTR altyapısında işlenir; sitemizde saklanmaz.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Order Summary */}
+            {/* Right — Sipariş Özeti */}
             <div className="w-full lg:w-96 flex-shrink-0">
               <div className="bg-white rounded-2xl border border-navy-100 p-6 sticky top-24">
                 <h2 className="font-black text-navy-900 text-lg mb-5">Sipariş Özeti</h2>
@@ -373,16 +270,16 @@ export default function CheckoutPage() {
                   {submitting ? (
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      İşleniyor...
+                      Sipariş oluşturuluyor...
                     </div>
                   ) : (
-                    <><Lock className="w-4 h-4" /> Siparişi Tamamla</>
+                    <><Lock className="w-4 h-4" /> Ödemeye Geç</>
                   )}
                 </button>
 
                 <p className="text-xs text-navy-400 text-center mt-3">
-                  "Siparişi Tamamla" butonuna basarak{" "}
-                  <Link href="/satis-sozlesmesi" target="_blank" rel="noopener noreferrer" className="underline hover:text-turquoise-500 transition-colors">Satış Sözleşmesi</Link>'ni kabul edersiniz.
+                  "Ödemeye Geç" butonuna basarak{" "}
+                  <Link href="/satis-sozlesmesi" target="_blank" rel="noopener noreferrer" className="underline hover:text-turquoise-500 transition-colors">Satış Sözleşmesi</Link>&apos;ni kabul edersiniz.
                 </p>
               </div>
             </div>

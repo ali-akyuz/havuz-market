@@ -63,5 +63,115 @@ Projeyi bilgisayarınızda çalıştırmak için aşağıdaki adımları izleyeb
    * Backend API: `http://localhost:4000`
    * Yönetici (Admin) Paneli: `http://localhost:3000/admin`
 
+## 💳 Ödeme Entegrasyonu
+
+Bu proje iki ödeme modunu destekler:
+
+| Mod | Açıklama |
+|-----|----------|
+| `mock` | **Demo/Geliştirme modu.** PayTR credentials gerekmez. Staj ve sunum için idealdir. |
+| `paytr` | **Gerçek PayTR iFrame ödemesi.** Merchant credentials zorunludur. |
+
+### Mod Seçimi (`backend/.env`)
+
+```env
+# Demo/gelistirme (varsayilan):
+PAYMENT_MODE=mock
+
+# Gercek PayTR odeme:
+PAYMENT_MODE=paytr
+```
+
+---
+
+### 🧪 Mock Mod (Staj / Demo / Geliştirme)
+
+PayTR merchant bilgileriniz olmadan tüm ödeme akışını test edebilirsiniz.
+
+**Ne yapar?**
+- PayTR API'sine istek atmaz
+- `/payment/[orderCode]` sayfasında iki buton gösterir:
+  - ✅ **Başarılı Ödemeyi Simüle Et** → Sipariş `PAID + PROCESSING`, stok düşer
+  - ❌ **Başarısız Ödemeyi Simüle Et** → Sipariş `FAILED + CANCELLED`, stok düşmez
+- Tüm işlemler backend'de veritabanına yansır (gerçek akışla aynı mantık)
+- Aynı sipariş iki kez başarılı olarak simüle edilirse stok tekrar düşmez (idempotent)
+
+**Mock mod kurulumu:**
+```bash
+# backend/.env
+PAYMENT_MODE=mock
+# PayTR değişkenlerine gerek yok
+```
+
+```bash
+cd backend && npm run dev
+# Çıkti: 💳 Odeme modu: MOCK (demo/gelistirme)
+```
+
+---
+
+### 💰 PayTR Gerçek Mod
+
+Gerçek PayTR iFrame ödemesi için:
+
+1. **PayTR merchant panelinden bilgileri alın:**  
+   https://merchant.paytr.com → İşyeri Bilgileri
+
+2. **`backend/.env` dosyasını doldurun:**
+
+```env
+PAYMENT_MODE=paytr
+
+PAYTR_MERCHANT_ID=buraya_merchant_id
+PAYTR_MERCHANT_KEY=buraya_merchant_key
+PAYTR_MERCHANT_SALT=buraya_merchant_salt
+
+PAYTR_TEST_MODE=1        # Test modunda 1, canlıda 0
+PAYTR_DEBUG_ON=1         # Hata detayları (canlıda 0 yapın)
+PAYTR_NO_INSTALLMENT=0
+PAYTR_MAX_INSTALLMENT=0
+PAYTR_CURRENCY=TL
+PAYTR_LANG=tr
+
+FRONTEND_URL=http://localhost:3000
+
+# PayTR callback localhost'a ulasamaz — ngrok gereklidir:
+# ngrok http 4000  →  asagidaki URL'yi kopyala
+BACKEND_PUBLIC_URL=https://xxxx.ngrok.io
+```
+
+3. **Callback URL için ngrok:**
+```bash
+ngrok http 4000
+# Cikan https://xxxx.ngrok.io adresini BACKEND_PUBLIC_URL'ye yaz
+```
+
+---
+
+### Ödeme Akışı
+
+```
+Sepet → /odeme (adres) → POST /api/orders
+     → /payment/{orderCode}
+          ├── mock mod:  Demo butonlar → /api/payments/mock/success veya /fail
+          └── paytr mod: PayTR iFrame → PayTR callback → /api/paytr/callback
+     → /payment/success?orderCode=...  (basarili)
+     → /payment/fail?orderCode=...     (basarisiz)
+```
+
+### Test Senaryoları
+
+| Senaryo | Beklenen Sonuç |
+|---------|----------------|
+| Sipariş oluştur | `orderCode` döner, `paymentStatus=WAITING_PAYMENT` |
+| Mock başarılı | `status=PROCESSING`, `paymentStatus=PAID`, stok düşer |
+| Mock başarısız | `status=CANCELLED`, `paymentStatus=FAILED`, stok düşmez |
+| Aynı mock 2 kez | 2. istekte stok tekrar düşmez (idempotent) |
+| PayTR başarılı callback | Hash doğrulama → PAID, stok düşer |
+| PayTR geçersiz hash | Sipariş güncellenmez, `OK` döner |
+| PAYMENT_MODE=paytr + eksik credentials | Açık hata mesajı döner |
+
 ## 💡 Neler Öğrendim?
-Bu projeyi yaparken; bir API'nin (Express) frontend (Next.js) ile nasıl haberleştiğini, ORM (Prisma) kullanarak veritabanı tablolarının nasıl yönetildiğini ve karmaşık form yapılarında state (Zustand) yönetiminin nasıl yapıldığını deneyimleme fırsatım oldu. Admin panelinde yazdığım CRUD işlemleri sayesinde arka plan mantığını pekiştirdim.
+Bu projeyi yaparken; bir API'nin (Express) frontend (Next.js) ile nasıl haberleştiğini, ORM (Prisma) kullanarak veritabanı tablolarının nasıl yönetildiğini ve karmaşık form yapılarında state (Zustand) yönetiminin nasıl yapıldığını deneyimleme fırsatım oldu. Admin panelinde yazdığım CRUD işlemleri sayesinde arka plan mantığını pekiştirdim. PayTR entegrasyonuyla gerçek dünya ödeme akışlarını, HMAC-SHA256 güvenlik kontrollerini ve idempotent callback işlemeyi de öğrendim.
+
+

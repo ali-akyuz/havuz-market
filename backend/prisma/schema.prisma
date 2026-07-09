@@ -1,17 +1,29 @@
-// Bu dosya Prisma ORM'in veritabanı şemasını tanımlar.
-// Her "model" bir veritabanı tablosuna karşılık gelir.
-// Fiyatlar kuruş cinsinden int olarak tutulur (1 TL = 100 kuruş).
+// Bu dosya Prisma ORM'in veritabani semasini tanimlar.
+// Her "model" bir veritabani tablosuna karsilik gelir.
+//
+// NEDEN PRISMA?
+// Veritabani sorgularini SQL yazmak yerine TypeScript ile yazabiliyoruz.
+// Prisma bu kod'u SQL'e cevirir ve bize tip guvenli (type-safe) bir API sunar.
+// Boylece veritabani alaninin tipini yanlis kullandigimizda derleme hatasi aliyoruz.
+//
+// FIYAT SAKLANMA BICIMI:
+// Tum fiyatlar KURUS cinsinden tam sayi (Int) olarak saklanir.
+// Ornek: 1500 TL → 150000 kurus
+// Neden? Ondalikli sayilarla (float) aritmetik yapmak yuvarlama hatasi uretir.
+// 0.1 + 0.2 = 0.30000000000000004 sorununu hicbir zaman yasamayiz.
 
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "library"
 }
 
 datasource db {
   provider = "postgresql"
+  // Veritabani URL'si .env dosyasindan okunur; koda yazilmaz!
 }
 
-// Ürün kategorileri (örn: Havuz Robotu, Kimyasallar)
+// Urun kategorileri (orneg: Havuz Robotu, Kimyasallar, Pompalar)
+// slug: URL'de gozuken kisim (ornek: "havuz-robotu")
 model Category {
   id        String    @id @default(uuid())
   name      String
@@ -22,17 +34,18 @@ model Category {
   products  Product[]
 }
 
-// Ürünler
+// Satistaki urunler
+// imageUrls dizi olarak tutulur cunku bir urunde birden fazla fotograf olabilir.
 model Product {
   id          String   @id @default(uuid())
   name        String
   slug        String   @unique
   description String
-  priceKurus  Int      // Fiyat kuruş cinsinden (örn: 150000 = 1500.00 TL)
+  priceKurus  Int      // Fiyat kurus cinsinden (ornek: 150000 = 1500.00 TL)
   stock       Int      @default(0)
-  imageUrls   String[] // Birden fazla görsel URL'si
-  isFeatured  Boolean  @default(false)
-  isActive    Boolean  @default(true)
+  imageUrls   String[] // Birden fazla gorsel URL'si (PostgreSQL array)
+  isFeatured  Boolean  @default(false) // Ana sayfada one cikanlari isaretler
+  isActive    Boolean  @default(true)  // false yapinca urun listede gorunmez (silmek yerine)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -42,29 +55,69 @@ model Product {
   orderItems  OrderItem[]
 }
 
-// Müşteri siparişleri
+// Musteri siparisleri
+// Siparis olusturuldugunda odeme henuz alinmamistir (PENDING + WAITING_PAYMENT).
+// Odeme onaylaninca durumlar guncellenir.
 model Order {
   id            String   @id @default(uuid())
-  orderCode     String   @unique // Örn: HM-A1B2C3D4
+  orderCode     String   @unique // Frontend'e gonderilen siparis kodu (HM-XXXXXXXX)
   customerName  String
   customerEmail String
   customerPhone String
-  address       String   // Tam adres tek bir alanda
-  subtotalKurus Int
-  shippingKurus Int
-  totalKurus    Int
-  status        String   @default("PENDING") // PENDING, PROCESSING, DELIVERED
-  createdAt     DateTime @default(now())
+  address       String   // Teslimat adresi tek bir alanda saklanir
+
+  // Fiyatlar — hepsi kurus cinsinden
+  subtotalKurus Int      // Kargo haric urun toplami
+  shippingKurus Int      // Kargo ucreti (0 ise ucretsiz kargo)
+  totalKurus    Int      // subtotal + shipping
+
+  // Siparis durumu
+  // PENDING     → Siparis olusturuldu, odeme bekleniyor
+  // PROCESSING  → Odeme alindi, hazirlanıyor
+  // DELIVERED   → Teslim edildi
+  // CANCELLED   → Iptal edildi
+  status    String   @default("PENDING")
+  createdAt DateTime @default(now())
+
+  // ── PayTR Odeme Altyapisi ──────────────────────────────────────────────
+  // Bu alanlar PayTR entegrasyonu sirasinda eklendi.
+  // Hem gercek PayTR hem de mock (demo) modu bu alanlari kullanir.
+
+  paymentProvider       String?   // "PAYTR" ya da "MOCK"
+  paymentStatus         String    @default("WAITING_PAYMENT")
+  // WAITING_PAYMENT → Odeme henuz yapilmadi
+  // PAID            → Odeme basariyla alindi
+  // FAILED          → Odeme basarisiz oldu
+
+  paidAt                DateTime? // Odeme ne zaman tamamlandi (null = henuz odenmedi)
+  paytrTotalAmount      Int?      // PayTR callback'inin onayladigi tutar (kurus)
+  paytrPaymentType      String?   // Odeme yontemi (credit-card, vb.)
+  paytrCurrency         String?   // Para birimi (TL)
+  paytrFailedReasonCode String?   // Basarisiz ise hata kodu
+  paytrFailedReasonMsg  String?   // Basarisiz ise aciklama
+  paytrRaw              Json?     // Debug icin tum callback verisi (production'da dikkatli kullanin)
 
   items OrderItem[]
 }
 
-// Siparişteki her bir ürün satırı
+// Siparis icindeki her bir urun satiri
+// Neden urun adini ve fiyatini burada ayrica sakliyoruz?
+// Cunku urunun fiyati veya adi ileride degisebilir.
+// Siparisi o anki fiyatla kaydetmek hem yasaldir hem de dogrudur.
 model OrderItem {
   id             String  @id @default(uuid())
   orderId        String
   productId      String
-  productName    String  // Siparişin verildiği andaki ürün adı
+  productName    String  // Siparis anindaki urun adi (sonradan degisse bile korunur)
+  quantity       Int
+  unitPriceKurus Int     // Siparis anindaki birim fiyat (kurus)
+  lineTotalKurus Int     // unitPriceKurus × quantity
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+
   quantity       Int
   unitPriceKurus Int     // Siparişin verildiği andaki birim fiyat
   lineTotalKurus Int     // unitPriceKurus * quantity

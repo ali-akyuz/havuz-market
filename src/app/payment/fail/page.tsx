@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 /**
  * /payment/fail?orderCode=... — Odeme Basarisiz Sayfasi
@@ -9,8 +9,9 @@
 import { useSearchParams } from "next/navigation";
 import { XCircle, RefreshCw, ShoppingBag, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { Suspense } from "react";
 
-export default function PaymentFailPage() {
+function PaymentFailContent() {
   const searchParams = useSearchParams();
   const orderCode    = searchParams.get("orderCode") ?? "";
 
@@ -81,5 +82,17 @@ export default function PaymentFailPage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function PaymentFailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[80vh] flex items-center justify-center bg-slate-50">
+        <div className="w-8 h-8 border-4 border-turquoise-200 border-t-turquoise-500 rounded-full animate-spin" />
+      </div>
+    }>
+      <PaymentFailContent />
+    </Suspense>
   );
 }

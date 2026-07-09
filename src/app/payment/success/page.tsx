@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 /**
  * /payment/success?orderCode=... — Odeme Basarili Sayfasi
@@ -8,7 +8,7 @@
  * bu yuzden siparis durumunu polling ile kontrol ederiz.
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Package, Clock, ArrowRight, RefreshCw } from "lucide-react";
 import Link from "next/link";
@@ -17,7 +17,7 @@ import { fetchApi } from "@/lib/api";
 
 type VerifyState = "checking" | "paid" | "pending" | "error";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const orderCode    = searchParams.get("orderCode") ?? "";
   const { clearCart } = useCartStore();
@@ -173,5 +173,19 @@ export default function PaymentSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-5 bg-slate-50">
+        <div className="w-20 h-20 rounded-3xl bg-turquoise-50 flex items-center justify-center border-2 border-turquoise-100">
+          <Clock className="w-10 h-10 text-turquoise-500 animate-pulse" />
+        </div>
+      </div>
+    }>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }
